@@ -20,7 +20,8 @@ class ZFSCalculation:
 
         # Define a 2D processor grid to parallelize summation over pairs of orbitals.
         self.pgrid = ProcessorGrid(comm, square=True)
-        self.push("Zero Field Splitting Calculation Created...", 0, "\n\n", "\n\n")
+        if self.pgrid.onroot:
+            print "\n\nZero Field Splitting Calculation Created...\n\n"
         self.pgrid.print_info()
 
         self.path, self.flag = path, wfcfmt
@@ -143,6 +144,7 @@ class ZFSCalculation:
         Compute local block of I in each processor, processor 0 gather and print
         TODO: all processor do summation of I first, then MPI_all reduce to get D
         """
+        tstartsolve = time()
         # Compute dipole-dipole interaction tensor. Due to symmetry, in later calculations
         # we only need to consider upper triangular part of ddig
         if self.pgrid.onroot:
@@ -160,7 +162,7 @@ class ZFSCalculation:
         if self.pgrid.onroot:
             print "\n  Iteration over pairs...\n"
         cstart = 0
-        tstart = time()
+        tstartloop = time()
         npairs = len(self.I.get_triu_iterator())
         interval = npairs // 100 + 1
         for counter, (iloc, jloc) in enumerate(self.I.get_triu_iterator()):
@@ -191,13 +193,13 @@ class ZFSCalculation:
             # Update progress in output
             if counter % interval == 0:
                 if self.pgrid.onroot:
-                    print "{:.0f}% finished ({} FFTs), time = {}......".format(
+                    print "{:.0f}% finished ({} FFTs), time = {}s......".format(
                         float(counter) / npairs * 100,
                         9 * (counter - cstart),  # TODO: change to 6 after optimization
-                        time() - tstart
+                        time() - tstartloop
                     )
                 cstart = counter
-                tstart = time()
+                tstartloop = time()
 
         self.I.symmetrize()
 
@@ -217,7 +219,7 @@ class ZFSCalculation:
         self.Evalue = 0.5 * (dx - dy)
 
         if self.pgrid.onroot:
-            print "Total D tensor (MHz): "
+            print "\n\nTotal D tensor (MHz): "
             pprint(self.D)
             print "D eigenvalues (MHz): "
             print self.ev
@@ -227,7 +229,7 @@ class ZFSCalculation:
             print self.evc[2]
             print "D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue)
 
-            print "Memory usage:"
+            print "\nMemory usage:"
             for obj in ["wfcmap", "rhogmap", "ddig", "I", "Iglobal"]:
                 if isinstance(self.__dict__[obj], dict):
                     nbytes = np.sum(value.nbytes for value in self.__dict__[obj].values())
@@ -239,6 +241,8 @@ class ZFSCalculation:
             print "{:.2f} MB".format(
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
             )
+
+            print "Time elapsed: {}s".format(time() - tstartsolve)
 
     def get_wfc_index(self, band, spin):
         """
