@@ -1,8 +1,12 @@
-_USE_PYFFTW = False
-if _USE_PYFFTW:
+from mpi4py import MPI
+try:
     from pyfftw.interfaces.numpy_fft import fftn, ifftn
-else:
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        print "Using PyFFTW..."
+except ImportError:
     from numpy.fft import fftn, ifftn
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        print "Using numpy.fft..."
 
 from numpy.fft import fftshift, ifftshift
 

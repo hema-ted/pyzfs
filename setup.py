@@ -8,4 +8,7 @@ setup(
     description = "",
     packages=["hspin"],
     classifiers=[],
+    install_requires=[
+        'scipy', 'ase', 'mpi4py',
+    ]
 )

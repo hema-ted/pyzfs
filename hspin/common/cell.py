@@ -1,6 +1,5 @@
 import numpy as np
 from ase import Atoms
-
 from .units import *
 
 class Cell:
