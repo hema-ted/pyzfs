@@ -106,7 +106,7 @@ class DistributedMatrix(object):
         self.nrow, self.ncol = self.pgrid.nrow, self.pgrid.ncol
 
         # Compute index range for the first two dimensions on each processor
-        assert isinstance(shape, tuple) and len(shape) >= 2
+        assert len(shape) >= 2
         assert all(isinstance(shape[i], int) for i in range(len(shape)))
         self.m, self.n = shape[0], shape[1]
 
@@ -152,9 +152,9 @@ class DistributedMatrix(object):
         self.indexmap = self.comm.allreduce(indexmap, op=MPI.SUM)
 
         # Build local matrix (self.val)
-        self.shape = shape
+        self.shape = tuple(shape)
         self.ndim = len(shape)
-        self.locshape = (self.mloc, self.nloc) + shape[2:]
+        self.locshape = (self.mloc, self.nloc) + self.shape[2:]
         self.dtype = dtype
         self.val = np.zeros(self.locshape, dtype=self.dtype)
 
