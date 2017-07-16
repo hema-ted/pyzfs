@@ -2,11 +2,11 @@ from mpi4py import MPI
 try:
     from pyfftw.interfaces.numpy_fft import fftn, ifftn
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print "FFT package: PyFFTW"
+        print "common.ft: Using PyFFTW library"
 except ImportError:
     from numpy.fft import fftn, ifftn
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print "FFT package: numpy.fft..."
+        print "common.ft: Using numpy.fft library"
 
 from numpy.fft import fftshift, ifftshift
 
