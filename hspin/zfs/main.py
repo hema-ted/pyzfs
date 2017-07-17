@@ -168,7 +168,7 @@ class ZFSCalculation:
             print "    Integrated charge density for {} = {}\n" \
                   "    It is assumed that all wavefunctions follows the " \
                   "same normalization convention".format(
-                fname0, norm
+                    fname0, norm
             )
 
     def parse_vasp(self):
@@ -193,13 +193,14 @@ class ZFSCalculation:
 
         nspin, nkpts, nbands = self._wavecar._occs.shape
         assert nspin == 2 and nkpts == 1
-        iuwfcs = np.where( self._wavecar._occs[0, 0] > 0.8 )[0]
-        idwfcs = np.where(self._wavecar._occs[1, 0] > 0.8)[0]
+        # Get band indices (starting from 1) with significant occupations
+        iuwfcs = np.where(self._wavecar._occs[0, 0] > 0.8)[0] + 1
+        idwfcs = np.where(self._wavecar._occs[1, 0] > 0.8)[0] + 1
 
         self.nuwfcs = len(iuwfcs)
         self.ndwfcs = len(idwfcs)
         self.nwfcs = self.nuwfcs + self.ndwfcs
-        self.fnamemap = ["WAVECAR"] * self.nuwfcs
+        self.fnamemap = ["WAVECAR"] * self.nwfcs
         self.bandspinmap = list(
             (iuwfcs[iwfc], "up") if iwfc < self.nuwfcs else (idwfcs[iwfc - self.nuwfcs], "down")
             for iwfc in range(self.nwfcs)
@@ -208,6 +209,8 @@ class ZFSCalculation:
             self.bandspinmap[iwfc]: iwfc for iwfc in range(self.nwfcs)
         }
 
+        # Here it is assumed that VASP pseudo wavefunctions are not normalized
+        # with the same convention, so each wavefunction need to be normalized separately
         self.normalizer = lambda f: f / np.sqrt(np.sum(np.abs(f)**2)*self.cell.omega/self.ft.N)
 
 
@@ -260,7 +263,9 @@ class ZFSCalculation:
         counter = 0
         for iwfc in range(self.nwfcs):
             band, spin = self.bandspinmap[iwfc]
-            wfcdata = self._wavecar.wfc_r(ispin=spin, iband=band, gamma=True)
+            wfcdata = self._wavecar.wfc_r(
+                ispin=1 if spin == "up" else 2, iband=band, gamma=True
+            )
             if iwfc in iwfcs_needed:
                 psir = self.normalizer(wfcdata)
                 self.wfcobjmap[iwfc] = psir
