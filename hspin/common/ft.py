@@ -1,14 +1,15 @@
+from __future__ import absolute_import, division, print_function
 from mpi4py import MPI
 try:
     from pyfftw.interfaces.numpy_fft import fftn, ifftn
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print "common.ft: Using PyFFTW library"
+        print("common.ft: using PyFFTW library...")
 except ImportError:
     from numpy.fft import fftn, ifftn
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print "common.ft: Using numpy.fft library"
-
+        print("common.ft: using numpy.fft library...")
 from numpy.fft import fftshift, ifftshift
+
 
 class FourierTransform:
 

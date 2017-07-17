@@ -1,7 +1,7 @@
+from __future__ import absolute_import, division, print_function
 import numpy as np
 from mpi4py import MPI
 from pprint import pprint
-from collections import OrderedDict
 
 from ..zfs.main import ZFSCalculation
 from . import parse_sys_argv
@@ -18,7 +18,7 @@ kwargs = {
 kwargs.update(parse_sys_argv())
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    print "exec.runzfs: Instantializing ZFSCalculation with following arguments:"
+    print("exec.runzfs: instantializing ZFSCalculation with following arguments...")
     pprint(kwargs)
 
 # ZFS calculation

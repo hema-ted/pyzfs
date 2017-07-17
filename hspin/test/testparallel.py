@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 from unittest import TestCase, TestLoader, TextTestRunner
 import numpy as np
 from numpy.random import randint, choice
@@ -39,9 +40,9 @@ class DistributedMatrixTest(TestCase):
         p = mpisync(randint)(1, 4)
         q = mpisync(randint)(1, 4)
         dtype = mpisync(choice)([np.int_, np.float_, np.complex])
-        print "m = {}, n = {}, p = {}, q = {}, dtype = {}".format(
+        print("m = {}, n = {}, p = {}, q = {}, dtype = {}".format(
             m, n, p, q, dtype
-        )
+        ))
         self.m, self.n, self.p, self.q, self.dtype = m, n, p, q, dtype
         self.mat = DistributedMatrix(self.pgrid, [m, n, p, q], dtype)
 

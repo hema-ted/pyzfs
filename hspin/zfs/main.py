@@ -1,13 +1,16 @@
+from __future__ import absolute_import, division, print_function
 import os
 from time import time
 from glob import glob
 import numpy as np
 from mpi4py import MPI
 from pprint import pprint
+import resource
 
 from ..common.parallel import ProcessorGrid, SymmetricDistributedMatrix
 from ..common.cell import Cell
 from ..common.ft import FourierTransform
+from ..common.io import indent
 from .ddi import compute_ddig
 from .prefactor import prefactor
 from .rhog import compute_rhog
@@ -48,6 +51,7 @@ class ZFSCalculation:
 
     """
 
+    @indent(2)
     def __init__(self, path, wfcfmt, memory="low", comm=MPI.COMM_WORLD):
         """Initialize ZFS calculation.
 
@@ -78,7 +82,7 @@ class ZFSCalculation:
         # Define a 2D processor grid to parallelize summation over pairs of orbitals.
         self.pgrid = ProcessorGrid(comm, square=True)
         if self.pgrid.onroot:
-            print "\n\nZero Field Splitting Calculation Created...\n\n"
+            print("Zero Field Splitting Calculation Created...\n\n")
         self.pgrid.print_info()
 
         # Parse wavefunctions, define cell and ft
@@ -94,7 +98,11 @@ class ZFSCalculation:
         # Declare ddig, I arrays and D arrays
         self.ddig = None
 
-        self.I = SymmetricDistributedMatrix(self.pgrid, (self.nwfcs, self.nwfcs, 6), np.float_)
+        if self.pgrid.onroot:
+            print("\nCreating I array...\n")
+        self.I = SymmetricDistributedMatrix(
+            self.pgrid, (self.nwfcs, self.nwfcs, 6), np.float_
+        )
         self.I.print_info("I")
         self.Iglobal = None
 
@@ -104,25 +112,28 @@ class ZFSCalculation:
         self.Dvalue = 0
         self.Evalue = 0
 
+    @indent(2)
     def parse_wfcs(self):
         if self.wfcfmt in ["cube-wfc", "cube-density"]:
             self.parse_cube()
         elif self.wfcfmt == "vasp":
             self.parse_vasp()
         if self.pgrid.onroot:
-            print "\n  Reading input wavefunctions...\n"
-            print "     nuwfcs = {}, ndwfcs = {}, nwfcs = {}".format(
+            print("\nReading input wavefunctions...\n")
+            print("   nuwfcs = {}, ndwfcs = {}, nwfcs = {}".format(
                 self.nuwfcs, self.ndwfcs, self.nwfcs
-            )
+            ))
             for iwfc in range(self.nwfcs):
-                print "       band = {}     spin = {}     file = {}".format(
-                    self.bandspinmap[iwfc][0], self.bandspinmap[iwfc][1], self.fnamemap[iwfc])
-            print "\n  System Overview:"
-            print "    Cell: "
-            pprint(self.cell.__dict__, indent=6)
-            print "    FFT Grid: "
-            pprint(self.ft.__dict__, indent=6)
+                print("     band = {}     spin = {}     file = {}".format(
+                    self.bandspinmap[iwfc][0], self.bandspinmap[iwfc][1], self.fnamemap[iwfc]
+                ))
+            print("\nSystem Overview:")
+            print("  Cell: ")
+            pprint(self.cell.__dict__, indent=4)
+            print("  FFT Grid: ")
+            pprint(self.ft.__dict__, indent=4)
 
+    @indent(4)
     def parse_cube(self):
         """Parse all cube files in current path that follows filename convention defined above."""
         from sunyata.parsers.text import parse_one_value
@@ -148,8 +159,8 @@ class ZFSCalculation:
         self.cell = Cell(ase_cell)
         self.ft = FourierTransform(*psir.shape)
         if self.pgrid.onroot:
-            print "\n    Cell and FFT grid are parsed from {}, it is assumed that all " \
-                  "wavefunctions are defined on the same cell and grid\n".format(fname0)
+            print("\n  Cell and FFT grid are parsed from {}, it is assumed that all " \
+                  "wavefunctions are defined on the same cell and grid\n".format(fname0))
 
         # Compute the integrated charge density from the first cube file,
         # generate a normalizer function that will be called each time when
@@ -165,12 +176,13 @@ class ZFSCalculation:
         else:
             raise ValueError
         if self.pgrid.onroot:
-            print "    Integrated charge density for {} = {}\n" \
+            print("    Integrated charge density for {} = {}\n" \
                   "    It is assumed that all wavefunctions follows the " \
                   "same normalization convention".format(
                     fname0, norm
-            )
+            ))
 
+    @indent(4)
     def parse_vasp(self):
         """Parse VASP WAVECAR and POSCAR files
 
@@ -213,14 +225,14 @@ class ZFSCalculation:
         # with the same convention, so each wavefunction need to be normalized separately
         self.normalizer = lambda f: f / np.sqrt(np.sum(np.abs(f)**2)*self.cell.omega/self.ft.N)
 
-
+    @indent(2)
     def load_wfcs(self):
         """Load KS orbitals required for evaluating the local block of I.
 
         If self.memory == "high", compute and store charge densities in G space.
         """
         if self.pgrid.onroot:
-            print "\n  Loading wavefunctions to memory...\n"
+            print("\nLoading wavefunctions to memory...\n")
 
         iwfcs_needed = set(
             list(range(self.I.mstart, self.I.mend))
@@ -234,11 +246,11 @@ class ZFSCalculation:
         else:
             raise ValueError
 
-        if self.memory == "--high":
+        if self.memory == "high":
             for iwfc, psir in self.wfcobjmap.items():
                 self.rhogmap[iwfc] = self.ft.forward(psir * np.conj(psir))
 
-
+    @indent(4)
     def load_cube(self, iwfcs_needed):
         """Load KS orbitals from cube files."""
         from ase.io.cube import read_cube_data
@@ -254,9 +266,10 @@ class ZFSCalculation:
             counter += 1
             if counter >= self.nwfcs // 10:
                 if self.pgrid.onroot:
-                    print "......"
+                    print("........")
                 counter = 0
 
+    @indent(4)
     def load_vasp(self, iwfcs_needed):
         """Load KS orbitals from VASP WAVECAR file."""
 
@@ -273,9 +286,10 @@ class ZFSCalculation:
             counter += 1
             if counter >= self.nwfcs // 10:
                 if self.pgrid.onroot:
-                    print "......"
+                    print("........")
                 counter = 0
 
+    @indent(2)
     def solve(self):
         """Compute and gather local block of I in each processor.
 
@@ -289,13 +303,13 @@ class ZFSCalculation:
         # Compute dipole-dipole interaction tensor. Due to symmetry we only need the
         # upper triangular part of ddig
         if self.pgrid.onroot:
-            print "\n  Computing dipole-dipole interaction tensor in G space...\n"
+            print("\nComputing dipole-dipole interaction tensor in G space...\n")
         ddig = compute_ddig(self.cell, self.ft)
         self.ddig = ddig[np.triu_indices(3)]
 
         # Compute contribution to D tensor from every pair of electrons
         if self.pgrid.onroot:
-            print "\n  Iteration over pairs...\n"
+            print("\nIteration over pairs...\n")
         csloop = 0
         tsloop = time()
         npairs = len(self.I.get_triu_iterator())
@@ -328,11 +342,11 @@ class ZFSCalculation:
             # Update progress in output
             if counter % interval == 0:
                 if self.pgrid.onroot:
-                    print "{:.0f}% finished ({} FFTs), time = {}s......".format(
+                    print("{:.0f}% finished ({} FFTs), time = {}s......".format(
                         float(counter) / npairs * 100,
                         9 * (counter - csloop),  # TODO: change to 6 after optimization
                         time() - tsloop
-                    )
+                    ))
                 csloop = counter
                 tsloop = time()
 
@@ -354,30 +368,29 @@ class ZFSCalculation:
         self.Evalue = 0.5 * (dx - dy)
 
         if self.pgrid.onroot:
-            print "\n\nTotal D tensor (MHz): "
+            print("\n\nTotal D tensor (MHz): ")
             pprint(self.D)
-            print "D eigenvalues (MHz): "
-            print self.ev
-            print "D eigenvectors: "
-            print self.evc[0]
-            print self.evc[1]
-            print self.evc[2]
-            print "D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue)
+            print("D eigenvalues (MHz): ")
+            print(self.ev)
+            print("D eigenvectors: ")
+            print(self.evc[0])
+            print(self.evc[1])
+            print(self.evc[2])
+            print("D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue))
 
-            print "\nMemory usage (on process 0):"
+            print("\nMemory usage (on process 0):")
             for obj in ["wfcobjmap", "rhogmap", "ddig", "I", "Iglobal"]:
                 if isinstance(self.__dict__[obj], dict):
                     nbytes = np.sum(value.nbytes for value in self.__dict__[obj].values())
                 else:
                     nbytes = self.__dict__[obj].nbytes
-                print "{:10} {:.2f} MB".format(obj, nbytes/1024.**2)
-            print "Total memory usage (on process 0):"
-            import resource
-            print "{:.2f} MB".format(
+                print("{:10} {:.2f} MB".format(obj, nbytes/1024.**2))
+            print("Total memory usage (on process 0):")
+            print("{:.2f} MB".format(
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
-            )
+            ))
 
-            print "Time elapsed: {:.0f}s".format(time() - tssolve)
+            print("Time elapsed: {:.0f}s".format(time() - tssolve))
 
     def get_xml(self):
         """Generate an xml to store information of this calculation.

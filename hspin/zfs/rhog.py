@@ -1,4 +1,6 @@
+from __future__ import absolute_import, division, print_function
 import numpy as np
+
 
 def compute_rhog(psi1r, psi2r, ft, rho1g=None, rho2g=None):
     # Define function to compute rho(G, -G) of two electrons
@@ -59,9 +61,9 @@ def compute_delta_model_rhog(cell, ft, d1, d2, d3, s=1):
     nd2 = int(n2 * d2 / R2[1])
     nd3 = int(n3 * d3 / R3[2])
 
-    print ns1, ns2, ns3
-    print nd1, nd2, nd3
-    print "effective d1, d2, d3: ", nd1 * R1[0] / n1, nd2 * R2[1] / n2, nd3 * R3[2] / n3
+    print(ns1, ns2, ns3)
+    print(nd1, nd2, nd3)
+    print("effective d1, d2, d3: ", nd1 * R1[0] / n1, nd2 * R2[1] / n2, nd3 * R3[2] / n3)
 
     psi1r = np.zeros([n1, n2, n3])
     psi2r = np.zeros([n1, n2, n3])

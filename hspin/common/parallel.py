@@ -1,6 +1,10 @@
+from __future__ import absolute_import, division, print_function
 from time import sleep
 import numpy as np
 from mpi4py import MPI
+
+from .io import indent
+
 
 class ProcessorGrid(object):
     """
@@ -55,15 +59,15 @@ class ProcessorGrid(object):
             color = i * (i + 1) / 2 + j
             self.symmcomm = self.comm.Split(color=color, key=self.irow)  # upper processor has rank 0
 
-
     def sleep(self, nsec=None):
         sleep(nsec if nsec else self.rank)
 
     def report(self, tag="", sleep=True):
         if sleep:
             self.sleep()
-        print "rank {} reporting {}".format(self.rank, tag)
+        print("rank {} reporting {}".format(self.rank, tag))
 
+    @indent(4)
     def print_info(self):
         columns = "rank  onroot  nrow  ncol  size  irow  icol  " \
                   "is_active  rowcomm_rank  colcomm_rank"
@@ -74,14 +78,14 @@ class ProcessorGrid(object):
         )
         allmessage = self.comm.gather(message, root=0)
         if self.onroot:
-            print "ProcessGrid{} info:".format(" (square)" if self.square else "")
-            print "rank -> (irow, icol) mapping:"
-            print self.pmap
-            print "(irow, icol) -> rank mapping:"
-            print self.invpmap
-            print columns
+            print("ProcessGrid{} info:".format(" (square)" if self.square else ""))
+            print("rank -> (irow, icol) mapping:")
+            print(self.pmap)
+            print("(irow, icol) -> rank mapping:")
+            print(self.invpmap)
+            print(columns)
             for m in allmessage:
-                print m
+                print(m)
 
 
 class DistributedMatrix(object):
@@ -158,6 +162,7 @@ class DistributedMatrix(object):
         self.dtype = dtype
         self.val = np.zeros(self.locshape, dtype=self.dtype)
 
+    @indent(4)
     def print_info(self, name=""):
         columns = "irow  icol  nrow  ncol  m  mloc  mstart  mend  n  nloc  nstart  nend  val.shape"
         message = "  {}    {}    {}    {}    {}    {}    {}    {}    {}    {}    {}    {}     {}".format(
@@ -168,12 +173,12 @@ class DistributedMatrix(object):
         )
         allmessage = self.comm.gather(message, root=0)
         if self.onroot:
-            print "DistributedMatrix info: {}".format(name)
-            print columns
+            print("DistributedMatrix info: {}".format(name))
+            print(columns)
             for m in allmessage:
-                print m
-            print "Index map:"
-            print self.indexmap
+                print(m)
+            print("Index map:")
+            print(self.indexmap)
 
     # Overload [] operator
     def __getitem__(self, item):
