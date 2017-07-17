@@ -5,7 +5,12 @@ from .units import *
 
 
 class Cell:
+    """A wrapper class for ASE Atoms that defines R and G vectors."""
     def __init__(self, ase_cell):
+        """
+        Args:
+            ase_cell (ASE Atoms): input ASE cell
+        """
         assert isinstance(ase_cell, Atoms)
         self.ase_cell = ase_cell.copy()
         self.omega = ase_cell.get_volume() * angstrom_to_bohr**3
@@ -13,5 +18,6 @@ class Cell:
         self.G1, self.G2, self.G3 = 2 * np.pi * ase_cell.get_reciprocal_cell() / angstrom_to_bohr
 
     def show(self, data):
+        """Visualize the cell with VESTA."""
         from sunyata.data.volumetric import VData
         VData(ase_cell=self.ase_cell, data=data).show()
