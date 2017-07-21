@@ -39,9 +39,9 @@ class FourierTransform:
             return fr
         fg = fftn(fr)
         sfg = fftshift(fg)
-        newsfg = sfg[(self.n1-n1)/2:(self.n1-n1)/2+n1,
-                     (self.n2-n2)/2:(self.n2-n2)/2+n2,
-                     (self.n3-n3)/2:(self.n3-n3)/2+n3,
+        newsfg = sfg[(self.n1-n1)//2:(self.n1-n1)//2+n1,
+                     (self.n2-n2)//2:(self.n2-n2)//2+n2,
+                     (self.n3-n3)//2:(self.n3-n3)//2+n3,
                     ]
         newfg = ifftshift(newsfg)
         newfr = (float(n1*n2*n3)/float(self.N)) * ifftn(newfg)

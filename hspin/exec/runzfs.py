@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from mpi4py import MPI
 from pprint import pprint
+from sunyata.cmdline.argv import parse_sys_argv
 
 from ..zfs.main import ZFSCalculation
-from . import parse_sys_argv
 
 # Default arguments
 kwargs = {
@@ -15,7 +15,7 @@ kwargs = {
 }
 
 # Override default arguments with sys.argv
-kwargs.update(parse_sys_argv())
+kwargs.update(parse_sys_argv()[1])
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     print("exec.runzfs: instantializing ZFSCalculation with following arguments...")

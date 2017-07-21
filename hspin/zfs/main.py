@@ -63,9 +63,10 @@ class ZFSCalculation:
                 "cube-wfc": cube files of (real) wavefunctions (Kohn-Sham orbitals).
                 "cube-density": cube files of (signed) wavefunction squared, mainly used to
                     support pp.x output with plot_num = 7 and lsign = .TRUE.
-                when cube-wfc or cube-density is used, it is assumed that all files in
-                the working directory with "up"/"down" in name are wavefunctions in
-                spin up/down channel.
+                file name convention for cube file:
+                    1. must end with ".cube".
+                    2. must contains either "up" or "down", inteperted as spin channel.
+                    3. the LAST integer value found the file name is interpreted as band index.
             comm (MPI.comm): MPI communicator on which ZFS calculation will be distributed.
             memory (str): memory mode. Supported values:
                 "high": high memory usage, better performance
@@ -139,14 +140,14 @@ class ZFSCalculation:
         from sunyata.parsers.text import parse_one_value
         from ase.io.cube import read_cube_data
 
-        uwfcs = sorted(glob("*up*"))
-        dwfcs = sorted(glob("*down*"))
+        uwfcs = sorted(glob("*up*.cube"))
+        dwfcs = sorted(glob("*down*.cube"))
         self.nuwfcs = len(uwfcs)
         self.ndwfcs = len(dwfcs)
         self.nwfcs = self.nuwfcs + self.ndwfcs
         self.fnamemap = uwfcs + dwfcs
         self.bandspinmap = map(
-            lambda fname: (parse_one_value(int, fname), "up" if "up" in fname else "down"),
+            lambda fname: (parse_one_value(int, fname, -1), "up" if "up" in fname else "down"),
             self.fnamemap
         )
         self.idxmap = {
@@ -157,7 +158,16 @@ class ZFSCalculation:
         fname0 = self.fnamemap[0]
         psir, ase_cell = read_cube_data(fname0)
         self.cell = Cell(ase_cell)
-        self.ft = FourierTransform(*psir.shape)
+        if self.wfcfmt == "cube-density":
+            self._dft = FourierTransform(*psir.shape)
+            self.ft = FourierTransform(*map(lambda x: x // 2, psir.shape))
+            if self.pgrid.onroot:
+                print("Charge density grid {} will be interpolated to wavefunction  {}.\n".format(
+                    (self._dft.n1, self._dft.n2, self._dft.n3), (self.ft.n1, self.ft.n2, self.ft.n3)
+                ))
+            psir = self._dft.fftintep(psir, self.ft.n1, self.ft.n2, self.ft.n3)
+        else:
+            self.ft = FourierTransform(*psir.shape)
         if self.pgrid.onroot:
             print("\n  Cell and FFT grid are parsed from {}, it is assumed that all " \
                   "wavefunctions are defined on the same cell and grid\n".format(fname0))
@@ -167,6 +177,7 @@ class ZFSCalculation:
         # a wavefunction (density) is read.
         # A nested lambda function trick is used to change the deferred evaluation
         # behavior of Python and store the norm inside the normalizer
+
         if self.wfcfmt == "cube-wfc":
             norm = np.sum(np.abs(psir) ** 2) * self.cell.omega / self.ft.N
             self.normalizer = (lambda c: lambda f: c * f)(1 / np.sqrt(norm))
@@ -260,6 +271,8 @@ class ZFSCalculation:
             fname = self.fnamemap[iwfc]
             wfcdata = read_cube_data(fname)[0]
             if iwfc in iwfcs_needed:
+                if self.wfcfmt == "cube-density":
+                    wfcdata = self._dft.fftintep(wfcdata, self.ft.n1, self.ft.n2, self.ft.n3)
                 psir = self.normalizer(wfcdata)
                 self.wfcobjmap[iwfc] = psir
 
@@ -373,9 +386,9 @@ class ZFSCalculation:
             print("D eigenvalues (MHz): ")
             print(self.ev)
             print("D eigenvectors: ")
-            print(self.evc[0])
-            print(self.evc[1])
-            print(self.evc[2])
+            print(self.evc[:, 0])
+            print(self.evc[:, 1])
+            print(self.evc[:, 2])
             print("D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue))
 
             print("\nMemory usage (on process 0):")
