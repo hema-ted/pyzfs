@@ -65,7 +65,7 @@ class ZFSCalculation:
                     support pp.x output with plot_num = 7 and lsign = .TRUE.
                 file name convention for cube file:
                     1. must end with ".cube".
-                    2. must contains either "up" or "down", inteperted as spin channel.
+                    2. must contains either "up" or "down", intepreted as spin channel.
                     3. the LAST integer value found the file name is interpreted as band index.
             comm (MPI.comm): MPI communicator on which ZFS calculation will be distributed.
             memory (str): memory mode. Supported values:

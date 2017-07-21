@@ -5,6 +5,8 @@ from mpi4py import MPI
 
 from .io import indent
 
+mpirank = MPI.COMM_WORLD.Get_rank()
+mpiroot = mpirank == 0
 
 class ProcessorGrid(object):
     """2D Grid of processors used to wrap MPI communications."""
