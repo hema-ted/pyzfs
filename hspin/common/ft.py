@@ -54,7 +54,7 @@ class FourierTransform:
         fr = self.N * ifftn(fg)
         return fr
 
-    def fftintep(self, fr, n1, n2, n3):
+    def interp(self, fr, n1, n2, n3):
         """Fourier interpolate a function to a denser grid.
 
         Args:

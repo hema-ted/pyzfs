@@ -165,7 +165,7 @@ class ZFSCalculation:
                 print("Charge density grid {} will be interpolated to wavefunction  {}.\n".format(
                     (self._dft.n1, self._dft.n2, self._dft.n3), (self.ft.n1, self.ft.n2, self.ft.n3)
                 ))
-            psir = self._dft.fftintep(psir, self.ft.n1, self.ft.n2, self.ft.n3)
+            psir = self._dft.interp(psir, self.ft.n1, self.ft.n2, self.ft.n3)
         else:
             self.ft = FourierTransform(*psir.shape)
         if self.pgrid.onroot:
@@ -183,7 +183,7 @@ class ZFSCalculation:
             self.normalizer = (lambda c: lambda f: c * f)(1 / np.sqrt(norm))
         elif self.wfcfmt == "cube-density":
             norm = np.sum(np.abs(psir)) * self.cell.omega / self.ft.N
-            self.normalizer = (lambda c: lambda f: c * np.sqrt(np.abs(f)))(1 / np.sqrt(norm))
+            self.normalizer = (lambda c: lambda f: c * np.sign(f) * np.sqrt(np.abs(f)))(1 / np.sqrt(norm))
         else:
             raise ValueError
         if self.pgrid.onroot:
@@ -272,7 +272,7 @@ class ZFSCalculation:
             wfcdata = read_cube_data(fname)[0]
             if iwfc in iwfcs_needed:
                 if self.wfcfmt == "cube-density":
-                    wfcdata = self._dft.fftintep(wfcdata, self.ft.n1, self.ft.n2, self.ft.n3)
+                    wfcdata = self._dft.interp(wfcdata, self.ft.n1, self.ft.n2, self.ft.n3)
                 psir = self.normalizer(wfcdata)
                 self.wfcobjmap[iwfc] = psir
 
