@@ -7,10 +7,20 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 
+
 def compute_ddig(cell, ft):
-    """
-    Compute dipole-dipole interaction in G space by
+    """Compute dipole-dipole interaction in G space.
+
     ddi(G)_{ab} = 4 * pi * [ Ga * Gb / G^2 - delta(a,b) / 3 ]
+    a, b are cartesian indices.
+
+    Args:
+        cell (..common.cell.Cell): Cell on which to compute ddig.
+        ft (..common.ft.FourierTransform): FT which defines grid size.
+
+    Returns:
+        np.ndarray of shape (3, 3, ft.N, ft.N). First two indices iterate
+            over cartesian coordinates, last two indices iterate over G space.
     """
 
     n1, n2, n3 = ft.n1, ft.n2, ft.n3
@@ -34,9 +44,18 @@ def compute_ddig(cell, ft):
 
 
 def compute_ddir(cell, ft):
-    """
-    Compute dipole-dipole interaction in R space by
+    """Compute dipole-dipole interaction in R space.
+
     ddi(r)_{ab} = ( r^2 * delta(a,b) - 3 * ra * rb ) / r^5
+    a, b are cartesian indices.
+
+    Args:
+        cell (..common.cell.Cell): Cell on which to compute ddig.
+        ft (..common.ft.FourierTransform): FT which defines grid size.
+
+    Returns:
+        np.ndarray of shape (3, 3, ft.N, ft.N). First two indices iterate
+            over cartesian coordinates, last two indices iterate over R space.
     """
 
     n1, n2, n3 = ft.n1, ft.n2, ft.n3

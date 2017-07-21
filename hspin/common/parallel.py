@@ -7,10 +7,13 @@ from .io import indent
 
 
 class ProcessorGrid(object):
-    """
-    2D Grid of processors. Used to wrap MPI communications.
-    """
+    """2D Grid of processors used to wrap MPI communications."""
     def __init__(self, comm, square=False):
+        """
+        Args:
+            comm (MPI.comm): MPI communicator on which the processor grid is defined on.
+            square (bool): whether the grid is a square grid.
+        """
         assert isinstance(comm, MPI.Intracomm)
         assert isinstance(square, bool)
         self.comm = comm.Clone()
@@ -89,17 +92,20 @@ class ProcessorGrid(object):
 
 
 class DistributedMatrix(object):
+    """An array whose first two dimensions are distributed.
+
+    Convention: a variable indexing local block of a distributed matrix should have
+    trailing "loc" in its name, otherwise it is considered a global index
+    """
 
     def __init__(self, pgrid, shape, dtype):
         """
-        :param pgrid: ProcessorGrid instance, defines how the matrix will be distributed
-        :param shape: Tuple of integers, defines shape of matrix.
-                      First two dimensions are distributed on processor grid.
-
-        Convention: a variable indexing local block of a distributed matrix should have
-                    trailing "loc" in its name, otherwise it is considered a global index
-
+        Args:
+            pgrid (ProcessorGrid): processor grid on which the matrix is distributed.
+            shape (tuple of ints): shape of global matrix
+            dtype (np.dtype): data type.
         """
+
         assert isinstance(pgrid, ProcessorGrid)
         self.pgrid = pgrid
         self.is_active = self.pgrid.is_active
@@ -188,9 +194,7 @@ class DistributedMatrix(object):
         self.val[key] = value
 
     def gtol(self, i, j=None):
-        """
-        global -> local index map
-        """
+        """global -> local index map"""
         assert self.mstart <= i < self.mend
         if j is not None:
             assert self.nstart <= j < self.nend
@@ -199,9 +203,7 @@ class DistributedMatrix(object):
             return i - self.mstart
 
     def ltog(self, iloc, jloc=None):
-        """
-        local -> global index map
-        """
+        """local -> global index map"""
         assert 0 <= iloc < self.mloc
         if jloc is not None:
             assert 0 <= jloc < self.nloc
@@ -210,11 +212,10 @@ class DistributedMatrix(object):
             return iloc + self.mstart
 
     def collect(self):
-        """
-        Gather the distributed matrix to all processor
-        :return: global matrix
+        """Gather the distributed matrix to all processor.
 
-        TODO: rewrite this function to reduce memory cost
+        Returns: global matrix.
+
         """
         lmatrix = np.zeros(self.shape, dtype=self.dtype)
         lmatrix[self.mstart:self.mend, self.nstart:self.nend] = self.val[0:self.mloc, 0:self.nloc]
@@ -225,8 +226,9 @@ class DistributedMatrix(object):
 
 
 class SymmetricDistributedMatrix(DistributedMatrix):
-
+    """A array whose first two dimensions are distributed and symmetric."""
     def __init__(self, pgrid, shape, dtype):
+        """Extends DistributedMatrix.__init__."""
         super(SymmetricDistributedMatrix, self).__init__(pgrid, shape, dtype)
         assert pgrid.square
         assert shape[0] == shape[1]
@@ -245,9 +247,11 @@ class SymmetricDistributedMatrix(DistributedMatrix):
         self.nbytes = self.val.nbytes
 
     def get_triu_iterator(self):
-        """
-        Get a list of 2D indices to iterate over upper triangular part of the local matrix
-        :return: list of 2-tuples of integer
+        """Get a list of 2D indices to iterate over upper triangular part of the local matrix.
+
+        Returns:
+            list of 2-tuples of ints.
+
         """
         if self.is_active:
             if self.mloc < self.mlocx or self.nloc < self.nlocx:
@@ -262,9 +266,7 @@ class SymmetricDistributedMatrix(DistributedMatrix):
             return []
 
     def symmetrize(self):
-        """
-        Compute lower triangular part of the matrix from upper triangular part
-        """
+        """Compute lower triangular part of the matrix from upper triangular part."""
         # lower trangular indices
         tril = np.tril_indices(self.mlocx)
 
