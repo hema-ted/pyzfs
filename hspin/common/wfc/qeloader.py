@@ -17,6 +17,7 @@ from .wavefunction import Wavefunction
 from ..parallel import mpiroot
 
 from sunyata.models.systems.empty import empty_ase_cell
+from sunyata.parsers.text import parse_one_value
 
 class QEWavefunctionLoader(WavefunctionLoader):
 
@@ -75,14 +76,43 @@ class QEWavefunctionLoader(WavefunctionLoader):
         self.c1xml = etree.parse("K00001/evc1.xml").getroot()
         self.c2xml = etree.parse("K00001/evc2.xml").getroot()
 
-    def retrieve(self, spin, band):
-        if spin == "up":
-            cxml = self.c1xml
-        else:
-            cxml = self.c2xml
+    def load(self, iorbs):
+        super(QEWavefunctionLoader, self).load(iorbs)
 
+        iterxml = etree.iterparse("K00001/evc1.xml")
+        for event, leaf in iterxml:
+            if "evc." in leaf.tag:
+                band = parse_one_value(int, leaf.tag)
+                if ("up", band) in self.wfc.sb_iorb_map:
+                    iorb = self.wfc.sb_iorb_map[("up", band)]
+                    if iorb in iorbs:
+                        psir = self.parse_psir_from_text(leaf.text)
+                        psir = self.normalize(psir)
+                        self.wfc.iorb_psir_map[iorb] = psir
+            leaf.clear()
+
+        if mpiroot:
+            print("........")
+
+        iterxml = etree.iterparse("K00001/evc2.xml")
+        for event, leaf in iterxml:
+            if "evc." in leaf.tag:
+                band = parse_one_value(int, leaf.tag)
+                if ("down", band) in self.wfc.sb_iorb_map:
+                    iorb = self.wfc.sb_iorb_map[("down", band)]
+                    if iorb in iorbs:
+                        psir = self.parse_psir_from_text(leaf.text)
+                        psir = self.normalize(psir)
+                        self.wfc.iorb_psir_map[iorb] = psir
+            leaf.clear()
+
+        if mpiroot:
+            print("........")
+
+
+    def parse_psir_from_text(self, text):
         c = np.fromstring(
-            cxml.find("evc.{}".format(band)).text.replace(",", "\n"),
+            text.replace(",", "\n"),
             sep="\n", dtype=np.float_).view(np.complex_)
 
         n1, n2, n3 = self.wfc.ft.n1, self.wfc.ft.n2, self.wfc.ft.n3

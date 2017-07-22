@@ -22,6 +22,7 @@ class WavefunctionLoader(object):
                 self.__class__.__name__, os.getcwd()
             ))
 
+    @abstractmethod
     def load(self, iorbs):
         """Load read space KS orbitals to memory, store in wfc.iorb_psir_map."""
         if mpiroot:
@@ -29,22 +30,6 @@ class WavefunctionLoader(object):
                 self.__class__.__name__
             ))
 
-        counter = 0
-        for iorb in iorbs:
-            spin, band = self.wfc.iorb_sb_map[iorb]
-            psir = self.retrieve(spin, band)
-            psir = self.normalize(psir)
-            self.wfc.iorb_psir_map[iorb] = psir
-
-            counter += 1
-            if counter >= len(iorbs) // 10:
-                if mpiroot:
-                    print("........")
-                counter = 0
-
-    @abstractmethod
-    def retrieve(self, spin, band):
-        pass
 
     def info(self):
         if mpiroot:

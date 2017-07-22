@@ -49,7 +49,20 @@ class VaspWavefunctionLoader(WavefunctionLoader):
         self.wfc = Wavefunction(cell=cell, ft=ft, nuorbs=nuorbs, ndorbs=ndorbs,
                                 iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map)
 
-    def retrieve(self, spin, band):
-        return self.wavecar.wfc_r(
-            ispin=1 if spin == "up" else 2, iband=band, gamma=True
-        )
+    def load(self, iorbs):
+        super(VaspWavefunctionLoader, self).load()
+
+        counter = 0
+        for iorb in iorbs:
+            spin, band = self.wfc.iorb_sb_map[iorb]
+            psir = self.wavecar.wfc_r(
+                ispin=1 if spin == "up" else 2, iband=band, gamma=True
+            )
+            psir = self.normalize(psir)
+            self.wfc.iorb_psir_map[iorb] = psir
+
+            counter += 1
+            if counter >= len(iorbs) // 10:
+                if mpiroot:
+                    print("........")
+                counter = 0
