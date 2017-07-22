@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import os
 from time import time
-from glob import glob
 import numpy as np
 from mpi4py import MPI
 from pprint import pprint
@@ -25,15 +24,7 @@ class ZFSCalculation:
     Several maps are defined to describe related transformations.
 
     Attributes:
-        nwfcs (int): total number of wavefunctions (KS orbitals) to be considered
-        nuwfcs/ndwfcs (int): number of spin up/down wavefunctions
-        idxmap (dict): (band index, spin) -> wfc index map
-        bandspinmap (list): wfc index -> (band index, spin) map
-        fnamemap (list): wfc index -> wfc filename map
-        wfcobjmap (dict): wfc index -> wfc object (3D array) map
-        rhogmap (dict): wfc index -> rhog object (3D array) map
-        normalizer (function): normalize a wavefunction
-
+        wfc (Wavefunction): container for all KS orbitals
         cell (Cell): defines cell size, R and G vectors
         ft (FourierTransform): defines grid size for fourier transform
 
@@ -41,7 +32,7 @@ class ZFSCalculation:
             where first index labels cartisian directions (xx, xy, xz, yy, yz, zz), last 3
             indices iterate over G space
 
-        Iglobal (ndarray): global I array of shape (nwfcs, nwfcs, 6)
+        Iglobal (ndarray): global I array of shape (norbs, norbs, 6)
             first two indices iterate over wavefunctions, last index labels catesian directions
             in xx, xy, xz, yy, yz, xz manner
         I (ndarray): local I matrix, first two dimensions are distributed among processors
@@ -87,14 +78,20 @@ class ZFSCalculation:
         self.pgrid.print_info()
 
         # Parse wavefunctions, define cell and ft
-        self.nwfcs = self.nuwfcs = self.ndwfcs = None
-        self.idxmap = self.bandspinmap = self.fnamemap = None
-        self.normalizer = None
-        self.cell = self.ft = None
-        self.parse_wfcs()
-
-        self.wfcobjmap = {}
-        self.rhogmap = {}
+        if self.wfcfmt == "qe":
+            raise NotImplementedError
+        elif self.wfcfmt in ["cube-wfc", "cube-density"]:
+            from ..common.wfc.cubeloader import CubeWavefunctionLoader
+            self.wfcloader = CubeWavefunctionLoader(
+                density=True if self.wfcfmt == "cube-density" else False
+            )
+        elif self.wfcfmt == "vasp":
+            from ..common.wfc.vasploader import VaspWavefunctionLoader
+            self.wfcloader = VaspWavefunctionLoader()
+        else:
+            raise ValueError
+        self.wfc = self.wfcloader.wfc
+        self.cell, self.ft = self.wfc.cell, self.wfc.ft
 
         # Declare ddig, I arrays and D arrays
         self.ddig = None
@@ -102,7 +99,7 @@ class ZFSCalculation:
         if self.pgrid.onroot:
             print("\nCreating I array...\n")
         self.I = SymmetricDistributedMatrix(
-            self.pgrid, (self.nwfcs, self.nwfcs, 6), np.float_
+            self.pgrid, (self.wfc.norbs, self.wfc.norbs, 6), np.float_
         )
         self.I.print_info("I")
         self.Iglobal = None
@@ -113,194 +110,6 @@ class ZFSCalculation:
         self.Dvalue = 0
         self.Evalue = 0
 
-    @indent(2)
-    def parse_wfcs(self):
-        if self.wfcfmt in ["cube-wfc", "cube-density"]:
-            self.parse_cube()
-        elif self.wfcfmt == "vasp":
-            self.parse_vasp()
-        if self.pgrid.onroot:
-            print("\nReading input wavefunctions...\n")
-            print("   nuwfcs = {}, ndwfcs = {}, nwfcs = {}".format(
-                self.nuwfcs, self.ndwfcs, self.nwfcs
-            ))
-            for iwfc in range(self.nwfcs):
-                print("     band = {}     spin = {}     file = {}".format(
-                    self.bandspinmap[iwfc][0], self.bandspinmap[iwfc][1], self.fnamemap[iwfc]
-                ))
-            print("\nSystem Overview:")
-            print("  Cell: ")
-            pprint(self.cell.__dict__, indent=4)
-            print("  FFT Grid: ")
-            pprint(self.ft.__dict__, indent=4)
-
-    @indent(4)
-    def parse_cube(self):
-        """Parse all cube files in current path that follows filename convention defined above."""
-        from sunyata.parsers.text import parse_one_value
-        from ase.io.cube import read_cube_data
-
-        uwfcs = sorted(glob("*up*.cube"))
-        dwfcs = sorted(glob("*down*.cube"))
-        self.nuwfcs = len(uwfcs)
-        self.ndwfcs = len(dwfcs)
-        self.nwfcs = self.nuwfcs + self.ndwfcs
-        self.fnamemap = uwfcs + dwfcs
-        self.bandspinmap = map(
-            lambda fname: (parse_one_value(int, fname, -1), "up" if "up" in fname else "down"),
-            self.fnamemap
-        )
-        self.idxmap = {
-            self.bandspinmap[iwfc]: iwfc for iwfc in range(self.nwfcs)
-        }
-
-        # Use ASE to parse the cell and grid from the first cube file
-        fname0 = self.fnamemap[0]
-        psir, ase_cell = read_cube_data(fname0)
-        self.cell = Cell(ase_cell)
-        if self.wfcfmt == "cube-density":
-            self._dft = FourierTransform(*psir.shape)
-            self.ft = FourierTransform(*map(lambda x: x // 2, psir.shape))
-            if self.pgrid.onroot:
-                print("Charge density grid {} will be interpolated to wavefunction  {}.\n".format(
-                    (self._dft.n1, self._dft.n2, self._dft.n3), (self.ft.n1, self.ft.n2, self.ft.n3)
-                ))
-            psir = self._dft.interp(psir, self.ft.n1, self.ft.n2, self.ft.n3)
-        else:
-            self.ft = FourierTransform(*psir.shape)
-        if self.pgrid.onroot:
-            print("\n  Cell and FFT grid are parsed from {}, it is assumed that all " \
-                  "wavefunctions are defined on the same cell and grid\n".format(fname0))
-
-        # Compute the integrated charge density from the first cube file,
-        # generate a normalizer function that will be called each time when
-        # a wavefunction (density) is read.
-        # A nested lambda function trick is used to change the deferred evaluation
-        # behavior of Python and store the norm inside the normalizer
-
-        if self.wfcfmt == "cube-wfc":
-            norm = np.sum(np.abs(psir) ** 2) * self.cell.omega / self.ft.N
-            self.normalizer = (lambda c: lambda f: c * f)(1 / np.sqrt(norm))
-        elif self.wfcfmt == "cube-density":
-            norm = np.sum(np.abs(psir)) * self.cell.omega / self.ft.N
-            self.normalizer = (lambda c: lambda f: c * np.sign(f) * np.sqrt(np.abs(f)))(1 / np.sqrt(norm))
-        else:
-            raise ValueError
-        if self.pgrid.onroot:
-            print("    Integrated charge density for {} = {}\n" \
-                  "    It is assumed that all wavefunctions follows the " \
-                  "same normalization convention".format(
-                    fname0, norm
-            ))
-
-    @indent(4)
-    def parse_vasp(self):
-        """Parse VASP WAVECAR and POSCAR files
-
-        Local wfc index is assigned in the manner:
-        0, 1, 2, ..., self.nuwfcs-1, ..., self.nwfcs-1  <==>
-        (1, "up"), (2, "up"), ... (self.nuwfcs, "up"), (1, "down"), ... (self.ndwfcs, "down")
-
-        NOTE: it is assumed that the occupations of KS orbitals is monotonically decreasing,
-        and therefore all occupied states index are contineous, thus the current implementation
-        does not work with excited state calculations!!!
-        NOTE: Gamma-only caculation is assumed!!
-        """
-        from ase.io import read
-        from sunyata.parsers.vasp import vaspwfc
-
-        ase_cell = read("POSCAR")
-        self.cell = Cell(ase_cell)
-        self._wavecar = vaspwfc()
-        self.ft = FourierTransform(*self._wavecar._ngrid)
-
-        nspin, nkpts, nbands = self._wavecar._occs.shape
-        assert nspin == 2 and nkpts == 1
-        # Get band indices (starting from 1) with significant occupations
-        iuwfcs = np.where(self._wavecar._occs[0, 0] > 0.8)[0] + 1
-        idwfcs = np.where(self._wavecar._occs[1, 0] > 0.8)[0] + 1
-
-        self.nuwfcs = len(iuwfcs)
-        self.ndwfcs = len(idwfcs)
-        self.nwfcs = self.nuwfcs + self.ndwfcs
-        self.fnamemap = ["WAVECAR"] * self.nwfcs
-        self.bandspinmap = list(
-            (iuwfcs[iwfc], "up") if iwfc < self.nuwfcs else (idwfcs[iwfc - self.nuwfcs], "down")
-            for iwfc in range(self.nwfcs)
-        )
-        self.idxmap = {
-            self.bandspinmap[iwfc]: iwfc for iwfc in range(self.nwfcs)
-        }
-
-        # Here it is assumed that VASP pseudo wavefunctions are not normalized
-        # with the same convention, so each wavefunction need to be normalized separately
-        self.normalizer = lambda f: f / np.sqrt(np.sum(np.abs(f)**2)*self.cell.omega/self.ft.N)
-
-    @indent(2)
-    def load_wfcs(self):
-        """Load KS orbitals required for evaluating the local block of I.
-
-        If self.memory == "high", compute and store charge densities in G space.
-        """
-        if self.pgrid.onroot:
-            print("\nLoading wavefunctions to memory...\n")
-
-        iwfcs_needed = set(
-            list(range(self.I.mstart, self.I.mend))
-            + list(range(self.I.nstart, self.I.nend))
-        )
-
-        if self.wfcfmt in ["cube-wfc", "cube-density"]:
-            self.load_cube(iwfcs_needed)
-        elif self.wfcfmt == "vasp":
-            self.load_vasp(iwfcs_needed)
-        else:
-            raise ValueError
-
-        if self.memory == "high":
-            for iwfc, psir in self.wfcobjmap.items():
-                self.rhogmap[iwfc] = self.ft.forward(psir * np.conj(psir))
-
-    @indent(4)
-    def load_cube(self, iwfcs_needed):
-        """Load KS orbitals from cube files."""
-        from ase.io.cube import read_cube_data
-
-        counter = 0
-        for iwfc in range(self.nwfcs):
-            fname = self.fnamemap[iwfc]
-            wfcdata = read_cube_data(fname)[0]
-            if iwfc in iwfcs_needed:
-                if self.wfcfmt == "cube-density":
-                    wfcdata = self._dft.interp(wfcdata, self.ft.n1, self.ft.n2, self.ft.n3)
-                psir = self.normalizer(wfcdata)
-                self.wfcobjmap[iwfc] = psir
-
-            counter += 1
-            if counter >= self.nwfcs // 10:
-                if self.pgrid.onroot:
-                    print("........")
-                counter = 0
-
-    @indent(4)
-    def load_vasp(self, iwfcs_needed):
-        """Load KS orbitals from VASP WAVECAR file."""
-
-        counter = 0
-        for iwfc in range(self.nwfcs):
-            band, spin = self.bandspinmap[iwfc]
-            wfcdata = self._wavecar.wfc_r(
-                ispin=1 if spin == "up" else 2, iband=band, gamma=True
-            )
-            if iwfc in iwfcs_needed:
-                psir = self.normalizer(wfcdata)
-                self.wfcobjmap[iwfc] = psir
-
-            counter += 1
-            if counter >= self.nwfcs // 10:
-                if self.pgrid.onroot:
-                    print("........")
-                counter = 0
 
     @indent(2)
     def solve(self):
@@ -311,7 +120,11 @@ class ZFSCalculation:
         tssolve = time()
 
         # Load wavefunctions from files
-        self.load_wfcs()
+        iorbs = set(
+            list(range(self.I.mstart, self.I.mend))
+            + list(range(self.I.nstart, self.I.nend))
+        )
+        self.wfcloader.load(iorbs=iorbs)
 
         # Compute dipole-dipole interaction tensor. Due to symmetry we only need the
         # upper triangular part of ddig
@@ -323,6 +136,7 @@ class ZFSCalculation:
         # Compute contribution to D tensor from every pair of electrons
         if self.pgrid.onroot:
             print("\nIteration over pairs...\n")
+        wfc = self.wfc
         csloop = 0
         tsloop = time()
         npairs = len(self.I.get_triu_iterator())
@@ -333,14 +147,14 @@ class ZFSCalculation:
             if i == j:
                 csloop += 1
                 continue  # skip diagonal terms
-            if self.bandspinmap[i][1] == self.bandspinmap[j][1]:
+            if wfc.iorb_sb_map[i][0] == wfc.iorb_sb_map[j][0]:
                 chi = 1
             else:
                 chi = -1
-            psi1r = self.wfcobjmap[i]
-            psi2r = self.wfcobjmap[j]
-            rho1g = self.rhogmap.get(i)
-            rho2g = self.rhogmap.get(j)
+            psi1r = wfc.iorb_psir_map[i]
+            psi2r = wfc.iorb_psir_map[j]
+            rho1g = wfc.iorb_rhog_map.get(i)
+            rho2g = wfc.iorb_rhog_map.get(j)
             rhog = compute_rhog(psi1r, psi2r, self.ft, rho1g=rho1g, rho2g=rho2g)
 
             # Factor to be multiplied with I:
@@ -392,11 +206,13 @@ class ZFSCalculation:
             print("D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue))
 
             print("\nMemory usage (on process 0):")
-            for obj in ["wfcobjmap", "rhogmap", "ddig", "I", "Iglobal"]:
-                if isinstance(self.__dict__[obj], dict):
-                    nbytes = np.sum(value.nbytes for value in self.__dict__[obj].values())
-                else:
-                    nbytes = self.__dict__[obj].nbytes
+
+            for obj in ["iorb_psir_map", "iorb_rhog_map"]:
+                nbytes = np.sum(value.nbytes for value in self.wfc.__dict__[obj].values())
+                print("{:10} {:.2f} MB".format(obj, nbytes/1024.**2))
+
+            for obj in ["ddig", "I", "Iglobal"]:
+                nbytes = self.__dict__[obj].nbytes
                 print("{:10} {:.2f} MB".format(obj, nbytes/1024.**2))
             print("Total memory usage (on process 0):")
             print("{:.2f} MB".format(

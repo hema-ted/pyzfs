@@ -7,16 +7,16 @@ from mpi4py import MPI
 from pprint import pprint
 import resource
 
-from .loader import WavefunctionLoader
+from .baseloader import WavefunctionLoader
 from ..cell import Cell
 from ..ft import FourierTransform
-from . import Wavefunction
+from .wavefunction import Wavefunction
 from ..parallel import mpiroot
 
 class VaspWavefunctionLoader(WavefunctionLoader):
 
-    def __init__(self):
-        super(VaspWavefunctionLoader, self).__init__()
+    def scan(self):
+        super(VaspWavefunctionLoader, self).scan()
 
         from ase.io import read
         from sunyata.parsers.vasp import vaspwfc
@@ -39,33 +39,29 @@ class VaspWavefunctionLoader(WavefunctionLoader):
         ndorbs = len(idorbs)
         norbs = nuorbs + ndorbs
 
-        idxsbmap = list(
+        iorb_sb_map = list(
             ("up", iuorbs[iwfc]) if iwfc < nuorbs
             else ("down", idorbs[iwfc - nuorbs])
             for iwfc in range(norbs)
         )
 
-        self.wfc = Wavefunction(cell=cell, ft=ft, nuorbs=nuorbs, ndorbs=ndorbs, idxsbmap=idxsbmap)
-
-    def normalize(self, psir):
-        """Normalize VASP pseudo wavefunction."""
-        assert psir.shape == (self.wfc.ft.n1, self.wfc.ft.n2, self.wfc.ft.n3)
-        norm = np.sqrt(np.sum(np.abs(psir) ** 2) * self.wfc.cell.omega / self.wfc.ft.N)
-        psir /= norm
+        iorb_fname_map = ["WAVECAR"] * norbs
+        self.wfc = Wavefunction(cell=cell, ft=ft, nuorbs=nuorbs, ndorbs=ndorbs,
+                                iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map)
 
     def load(self, iorbs):
-        """Load KS orbitals to memory, store in wfc.idxdatamap."""
+        super(VaspWavefunctionLoader, self).load(iorbs=iorbs)
         counter = 0
         for iorb in iorbs:
-            spin, band = self.wfc.idxsbmap(iorb)
+            spin, band = self.wfc.iorb_sb_map[iorb]
             psir = self.wavecar.wfc_r(
                 ispin=1 if spin == "up" else 2, iband=band, gamma=True
             )
             self.normalize(psir)
-            self.wfc.idxdatamap[iorb] = psir
+            self.wfc.iorb_psir_map[iorb] = psir
 
             counter += 1
-            if counter >= iorbs // 10:
+            if counter >= len(iorbs) // 10:
                 if mpiroot:
                     print("........")
                 counter = 0
