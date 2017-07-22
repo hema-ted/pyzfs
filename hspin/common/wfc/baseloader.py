@@ -63,7 +63,7 @@ class WavefunctionLoader(object):
             pprint(wfc.ft.__dict__, indent=4)
 
     def normalize(self, psir):
-        """Normalize VASP pseudo wavefunction."""
+        """Normalize wavefunction."""
         assert psir.shape == (self.wfc.ft.n1, self.wfc.ft.n2, self.wfc.ft.n3)
         norm = np.sqrt(np.sum(np.abs(psir) ** 2) * self.wfc.cell.omega / self.wfc.ft.N)
         return psir / norm

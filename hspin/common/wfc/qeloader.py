@@ -46,7 +46,7 @@ class QEWavefunctionLoader(WavefunctionLoader):
         assert np.ptp(self.gvecs[:, 0]) <= ft.n1
         assert np.ptp(self.gvecs[:, 1]) <= ft.n2
         assert np.ptp(self.gvecs[:, 2]) <= ft.n3
-        self.gvecs[:, [0, 2]] = self.gvecs[:, [2, 0]]
+        # self.gvecs[:, [0, 2]] = self.gvecs[:, [2, 0]]
 
         euxml = etree.parse("K00001/eigenval1.xml").getroot()
         edxml = etree.parse("K00001/eigenval2.xml").getroot()
@@ -94,9 +94,8 @@ class QEWavefunctionLoader(WavefunctionLoader):
                 rig1 = ig1 if ig1 < n1 // 2 + 1 else ig1 - n1
                 rig2 = ig2 if ig2 < n2 // 2 + 1 else ig2 - n2
                 rig3 = ig3 if ig3 < n3 // 2 + 1 else ig3 - n3
-                if ((rig3 > 0) or (rig3 == 0 and rig2 > 0)
-                    or (rig3 == 0 and rig2 == 0 and rig1 >= 0)):
-                    continue
-                psig[ig1, ig2, ig3] = psig[-ig1, -ig2, -ig3].conjugate()
+                if ((rig1 < 0) or (rig1 == 0 and rig2 < 0)
+                    or (rig1 == 0 and rig2 == 0 and rig3 < 0)):
+                    psig[ig1, ig2, ig3] = psig[-ig1, -ig2, -ig3].conjugate()
 
         return self.wfc.ft.backward(psig)
