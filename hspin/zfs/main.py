@@ -68,7 +68,7 @@ class ZFSCalculation:
         # Initialize control parameters
         self.path, self.wfcfmt, self.memory = path, wfcfmt, memory
         os.chdir(self.path)
-        assert self.wfcfmt in ["cube-wfc", "cube-density", "vasp"]
+        assert self.wfcfmt in ["cube-wfc", "cube-density", "vasp", "qe"]
         assert self.memory in ["high", "low"]
 
         # Define a 2D processor grid to parallelize summation over pairs of orbitals.
@@ -79,7 +79,8 @@ class ZFSCalculation:
 
         # Parse wavefunctions, define cell and ft
         if self.wfcfmt == "qe":
-            raise NotImplementedError
+            from ..common.wfc.qeloader import QEWavefunctionLoader
+            self.wfcloader = QEWavefunctionLoader()
         elif self.wfcfmt in ["cube-wfc", "cube-density"]:
             from ..common.wfc.cubeloader import CubeWavefunctionLoader
             self.wfcloader = CubeWavefunctionLoader(
@@ -125,6 +126,8 @@ class ZFSCalculation:
             + list(range(self.I.nstart, self.I.nend))
         )
         self.wfcloader.load(iorbs=iorbs)
+        if self.memory == "low":
+            del self.wfcloader
 
         # Compute dipole-dipole interaction tensor. Due to symmetry we only need the
         # upper triangular part of ddig

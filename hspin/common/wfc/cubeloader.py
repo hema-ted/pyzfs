@@ -55,8 +55,7 @@ class CubeWavefunctionLoader(WavefunctionLoader):
         self.info()
 
     def load(self, iorbs):
-        """Load KS orbitals to memory, store in wfc.idxdatamap."""
-        super(CubeWavefunctionLoader, self).load(iorbs=iorbs)
+        """Overload WavefunctionHandler.load() due to ASE MPI problem."""
         from ase.io.cube import read_cube_data
 
         wfc = self.wfc
@@ -72,7 +71,7 @@ class CubeWavefunctionLoader(WavefunctionLoader):
             else:
                 psir = read_cube_data(fname)[0]
 
-            self.normalize(psir)
+            psir = self.normalize(psir)
             wfc.iorb_psir_map[iorb] = psir
 
             counter += 1
