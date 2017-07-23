@@ -73,8 +73,8 @@ class QEWavefunctionLoader(WavefunctionLoader):
         self.wfc = Wavefunction(cell=cell, ft=ft, nuorbs=nuorbs, ndorbs=ndorbs,
                                 iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map)
 
-        self.c1xml = etree.parse("K00001/evc1.xml").getroot()
-        self.c2xml = etree.parse("K00001/evc2.xml").getroot()
+        #self.c1xml = etree.parse("K00001/evc1.xml").getroot()
+        #self.c2xml = etree.parse("K00001/evc2.xml").getroot()
 
     def load(self, iorbs):
         super(QEWavefunctionLoader, self).load(iorbs)
