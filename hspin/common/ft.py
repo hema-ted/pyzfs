@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function
 from mpi4py import MPI
 try:
-    from pyfftw.interfaces.numpy_fft import fftn, ifftn
+    from pyfftw.interfaces.numpy_fft import fftn, ifftn, rfftn, irfftn
     if MPI.COMM_WORLD.Get_rank() == 0:
         print("common.ft: using PyFFTW library...")
 except ImportError:
-    from numpy.fft import fftn, ifftn
+    from numpy.fft import fftn, ifftn, rfftn, irfftn
     if MPI.COMM_WORLD.Get_rank() == 0:
         print("common.ft: using numpy.fft library...")
 from numpy.fft import fftshift, ifftshift
@@ -55,7 +55,7 @@ class FourierTransform:
         return fr
 
     def interp(self, fr, n1, n2, n3):
-        """Fourier interpolate a function to a denser grid.
+        """Fourier interpolate a function to a smoother grid.
 
         Args:
             fr: function to be interpolated
@@ -70,9 +70,9 @@ class FourierTransform:
             return fr
         fg = fftn(fr)
         sfg = fftshift(fg)
-        newsfg = sfg[(self.n1-n1)//2:(self.n1-n1)//2+n1,
-                     (self.n2-n2)//2:(self.n2-n2)//2+n2,
-                     (self.n3-n3)//2:(self.n3-n3)//2+n3,
+        newsfg = sfg[(self.n1-n1-1)//2+1:(self.n1-n1-1)//2+1+n1,
+                     (self.n2-n2-1)//2+1:(self.n2-n2-1)//2+1+n2,
+                     (self.n3-n3-1)//2+1:(self.n3-n3-1)//2+1+n3,
                     ]
         newfg = ifftshift(newsfg)
         newfr = (float(n1*n2*n3)/float(self.N)) * ifftn(newfg)
