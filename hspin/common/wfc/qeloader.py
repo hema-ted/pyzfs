@@ -114,6 +114,10 @@ class QEWavefunctionLoader(WavefunctionLoader):
             print("........")
 
     def parse_psir_from_text(self, text):
+        print("Total memory usage (on process 0):")
+        print("{:.2f} MB".format(
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
+        ))
         if mpiroot:
             print("parse_psir_from_text")
         c = np.fromstring(
