@@ -88,11 +88,7 @@ class ZFSCalculation:
         self.Dvalue = 0
         self.Evalue = 0
 
-        if self.pgrid.onroot:
-            print("\nCurrent memory usage (on process 0):")
-            print("{:.2f} MB".format(
-                resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
-            ))
+        self.print_memory_usage()
 
     @indent(2)
     def solve(self):
@@ -125,11 +121,11 @@ class ZFSCalculation:
         # Compute contribution to D tensor from every pair of electrons
         self.pgrid.comm.barrier()
         if self.pgrid.onroot:
-            print("\nIteration over pairs...\n")
+            print("\nIterating over pairs...\n")
         wfc = self.wfc
 
-        c = Counter(len(self.I.get_triu_iterator()),
-                    message="{n} pairs ({percent}%) (on processor 0) finished ({dt})...")
+        c = Counter(len(self.I.get_triu_iterator()), percent=0.01,
+                    message="(process 0) {n} pairs ({percent}%) computed in {dt}...")
 
         for iloc, jloc in self.I.get_triu_iterator():
             # Load two wavefunctions

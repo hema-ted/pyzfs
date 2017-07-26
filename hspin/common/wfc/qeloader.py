@@ -97,8 +97,8 @@ class QEWavefunctionLoader(WavefunctionLoader):
         # TODO: first column and row read, then bcast to all processors
         super(QEWavefunctionLoader, self).load(iorbs)
 
-        c = Counter(len(iorbs),
-                    message="{n} orbitals ({percent}%) loaded (on processor 0, norbs = {ntot})...")
+        c = Counter(len(iorbs), percent=0.1,
+                    message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
 
         iuorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "up", iorbs)
         idorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "down", iorbs)

@@ -51,6 +51,7 @@ def compute_ddig(cell, ft):
     Gxz = Gx * Gz
     Gyz = Gy * Gz
     Gsquare = Gxx + Gyy + Gzz
+    Gsquare[0, 0, 0] = 1  # avoid runtime error message, G = 0 term will be excluded later
 
     ddig[0, 0, ...] = Gxx / Gsquare - 1. / 3.
     ddig[1, 1, ...] = Gyy / Gsquare - 1. / 3.
