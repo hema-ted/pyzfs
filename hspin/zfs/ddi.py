@@ -27,21 +27,42 @@ def compute_ddig(cell, ft):
     G1, G2, G3 = cell.G1, cell.G2, cell.G3
     omega = cell.omega
 
+    from numpy.fft import fftfreq
     ddig = np.zeros([3, 3, n1, n2, n3])
 
-    for ig1, ig2, ig3 in np.ndindex(n1, n2, n3):
-        if ig1 == ig2 == ig3 == 0:
-            continue  # neglect G = 0 component
+    G1_arr = np.outer(G1, fftfreq(n1, d=1 / n1))
+    G2_arr = np.outer(G2, fftfreq(n2, d=1 / n1))
+    G3_arr = np.outer(G3, fftfreq(n3, d=1 / n1))
 
-        G = ((ig1 - n1 * int(ig1 > n1 / 2)) * G1
-             + (ig2 - n2 * int(ig2 > n2 / 2)) * G2
-             + (ig3 - n3 * int(ig3 > n3 / 2)) * G3)
+    Gx = (  G1_arr[0, :, np.newaxis, np.newaxis]
+          + G2_arr[0, np.newaxis, :, np.newaxis]
+          + G3_arr[0, np.newaxis, np.newaxis, :])
+    Gy = (  G1_arr[1, :, np.newaxis, np.newaxis]
+          + G2_arr[1, np.newaxis, :, np.newaxis]
+          + G3_arr[1, np.newaxis, np.newaxis, :])
+    Gz = (  G1_arr[2, :, np.newaxis, np.newaxis]
+          + G2_arr[2, np.newaxis, :, np.newaxis]
+          + G3_arr[2, np.newaxis, np.newaxis, :])
 
-        ddig[..., ig1, ig2, ig3] = ((4*np.pi/omega)
-                                    * (np.outer(G, G) / np.linalg.norm(G)**2
-                                      - np.eye(3)/3))
+    Gxx = Gx ** 2
+    Gyy = Gy ** 2
+    Gzz = Gz ** 2
+    Gxy = Gx * Gy
+    Gxz = Gx * Gz
+    Gyz = Gy * Gz
+    Gsquare = Gxx + Gyy + Gzz
+
+    ddig[0, 0, ...] = Gxx / Gsquare - 1. / 3.
+    ddig[1, 1, ...] = Gyy / Gsquare - 1. / 3.
+    ddig[2, 2, ...] = Gzz / Gsquare - 1. / 3.
+    ddig[0, 1, ...] = ddig[1, 0, ...] = Gxy / Gsquare
+    ddig[0, 2, ...] = ddig[2, 0, ...] = Gxz / Gsquare
+    ddig[1, 2, ...] = ddig[2, 1, ...] = Gyz / Gsquare
+
+    ddig[..., 0, 0, 0] = 0
+    ddig *= 4 * np.pi / omega
+
     return ddig
-
 
 def compute_ddir(cell, ft):
     """Compute dipole-dipole interaction in R space.

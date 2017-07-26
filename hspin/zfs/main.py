@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-import os
 from time import time
 import numpy as np
 from mpi4py import MPI
@@ -10,6 +9,7 @@ from ..common.parallel import ProcessorGrid, SymmetricDistributedMatrix
 from ..common.cell import Cell
 from ..common.ft import FourierTransform
 from ..common.io import indent
+from ..common.counter import Counter
 from .ddi import compute_ddig
 from .prefactor import prefactor
 from .rhog import compute_rhog
@@ -43,21 +43,11 @@ class ZFSCalculation:
     """
 
     @indent(2)
-    def __init__(self, path, wfcfmt, memory="low", comm=MPI.COMM_WORLD):
+    def __init__(self, wfcloader, memory="low", comm=MPI.COMM_WORLD):
         """Initialize ZFS calculation.
 
         Args:
-            path (str): working directory for this calculation. Python will first change
-                the working dir to path before reading wavefunctions.
-            wfcfmt (str): format of input wavefunction. Supported values:
-                "vasp": VASP WAVECAR and POSCAR file.
-                "cube-wfc": cube files of (real) wavefunctions (Kohn-Sham orbitals).
-                "cube-density": cube files of (signed) wavefunction squared, mainly used to
-                    support pp.x output with plot_num = 7 and lsign = .TRUE.
-                file name convention for cube file:
-                    1. must end with ".cube".
-                    2. must contains either "up" or "down", intepreted as spin channel.
-                    3. the LAST integer value found the file name is interpreted as band index.
+            wfcloader (WavefunctionLoader): defines how
             comm (MPI.comm): MPI communicator on which ZFS calculation will be distributed.
             memory (str): memory mode. Supported values:
                 "high": high memory usage, better performance
@@ -66,31 +56,18 @@ class ZFSCalculation:
         """
 
         # Initialize control parameters
-        self.path, self.wfcfmt, self.memory = path, wfcfmt, memory
-        os.chdir(self.path)
-        assert self.wfcfmt in ["cube-wfc", "cube-density", "vasp", "qe"]
+        self.memory = memory
         assert self.memory in ["high", "low"]
 
         # Define a 2D processor grid to parallelize summation over pairs of orbitals.
         self.pgrid = ProcessorGrid(comm, square=True)
         if self.pgrid.onroot:
-            print("Zero Field Splitting Calculation Created...\n\n")
+            print("\n\nZero Field Splitting Calculation Created...\n\n")
         self.pgrid.print_info()
 
         # Parse wavefunctions, define cell and ft
-        if self.wfcfmt == "qe":
-            from ..common.wfc.qeloader import QEWavefunctionLoader
-            self.wfcloader = QEWavefunctionLoader()
-        elif self.wfcfmt in ["cube-wfc", "cube-density"]:
-            from ..common.wfc.cubeloader import CubeWavefunctionLoader
-            self.wfcloader = CubeWavefunctionLoader(
-                density=True if self.wfcfmt == "cube-density" else False
-            )
-        elif self.wfcfmt == "vasp":
-            from ..common.wfc.vasploader import VaspWavefunctionLoader
-            self.wfcloader = VaspWavefunctionLoader()
-        else:
-            raise ValueError
+        self.wfcloader = wfcloader
+
         self.wfc = self.wfcloader.wfc
         self.cell, self.ft = self.wfc.cell, self.wfc.ft
 
@@ -111,6 +88,11 @@ class ZFSCalculation:
         self.Dvalue = 0
         self.Evalue = 0
 
+        if self.pgrid.onroot:
+            print("\nCurrent memory usage (on process 0):")
+            print("{:.2f} MB".format(
+                resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
+            ))
 
     @indent(2)
     def solve(self):
@@ -118,6 +100,7 @@ class ZFSCalculation:
 
         TODO: all processor do summation of I first, then MPI allreduce to get D
         """
+        self.pgrid.comm.barrier()
         tssolve = time()
 
         # Load wavefunctions from files
@@ -126,29 +109,33 @@ class ZFSCalculation:
             + list(range(self.I.nstart, self.I.nend))
         )
         self.wfcloader.load(iorbs=iorbs)
-        if self.memory == "low":
-            del self.wfcloader
+        del self.wfcloader
+
+        self.print_memory_usage()
 
         # Compute dipole-dipole interaction tensor. Due to symmetry we only need the
         # upper triangular part of ddig
+        self.pgrid.comm.barrier()
         if self.pgrid.onroot:
             print("\nComputing dipole-dipole interaction tensor in G space...\n")
         ddig = compute_ddig(self.cell, self.ft)
         self.ddig = ddig[np.triu_indices(3)]
+        self.print_memory_usage()
 
         # Compute contribution to D tensor from every pair of electrons
+        self.pgrid.comm.barrier()
         if self.pgrid.onroot:
             print("\nIteration over pairs...\n")
         wfc = self.wfc
-        csloop = 0
-        tsloop = time()
-        npairs = len(self.I.get_triu_iterator())
-        interval = npairs // 100 + 1
-        for counter, (iloc, jloc) in enumerate(self.I.get_triu_iterator()):
+
+        c = Counter(len(self.I.get_triu_iterator()),
+                    message="{n} pairs ({percent}%) (on processor 0) finished ({dt})...")
+
+        for iloc, jloc in self.I.get_triu_iterator():
             # Load two wavefunctions
             i, j = self.I.ltog(iloc, jloc)
             if i == j:
-                csloop += 1
+                c.count()
                 continue  # skip diagonal terms
             if wfc.iorb_sb_map[i][0] == wfc.iorb_sb_map[j][0]:
                 chi = 1
@@ -168,17 +155,7 @@ class ZFSCalculation:
 
             self.I[iloc, jloc, ...] = np.real(fac * np.tensordot(self.ddig, rhog, axes=3))
             # TODO: check if it is safe to only use real apart
-
-            # Update progress in output
-            if counter % interval == 0:
-                if self.pgrid.onroot:
-                    print("{:.0f}% finished ({} FFTs), time = {}s......".format(
-                        float(counter) / npairs * 100,
-                        9 * (counter - csloop),  # TODO: change to 6 after optimization
-                        time() - tsloop
-                    ))
-                csloop = counter
-                tsloop = time()
+            c.count()
 
         self.I.symmetrize()
 
@@ -198,6 +175,7 @@ class ZFSCalculation:
         self.Evalue = 0.5 * (dx - dy)
 
         if self.pgrid.onroot:
+
             print("\n\nTotal D tensor (MHz): ")
             pprint(self.D)
             print("D eigenvalues (MHz): ")
@@ -208,21 +186,32 @@ class ZFSCalculation:
             print(self.evc[:, 2])
             print("D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue))
 
+            self.print_memory_usage()
+
+            print("Time elapsed for pair iteration: {:.0f}s".format(time() - tssolve))
+
+    def print_memory_usage(self):
+        if self.pgrid.onroot:
             print("\nMemory usage (on process 0):")
 
             for obj in ["iorb_psir_map", "iorb_rhog_map"]:
-                nbytes = np.sum(value.nbytes for value in self.wfc.__dict__[obj].values())
-                print("{:10} {:.2f} MB".format(obj, nbytes/1024.**2))
+                try:
+                    nbytes = np.sum(value.nbytes for value in self.wfc.__dict__[obj].values())
+                    print("  {:10} {:.2f} MB".format(obj, nbytes/1024.**2))
+                except KeyError:
+                    pass
 
             for obj in ["ddig", "I", "Iglobal"]:
-                nbytes = self.__dict__[obj].nbytes
-                print("{:10} {:.2f} MB".format(obj, nbytes/1024.**2))
-            print("Total memory usage (on process 0):")
-            print("{:.2f} MB".format(
+                try:
+                    nbytes = self.__dict__[obj].nbytes
+                    print("  {:10} {:.2f} MB".format(obj, nbytes/1024.**2))
+                except AttributeError:
+                    pass
+
+            print("Total memory usage (on process 0): {:.2f} MB\n".format(
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
             ))
 
-            print("Time elapsed: {:.0f}s".format(time() - tssolve))
 
     def get_xml(self):
         """Generate an xml to store information of this calculation.

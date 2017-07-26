@@ -15,12 +15,20 @@ from ..cell import Cell
 from ..ft import FourierTransform, fftshift, ifftshift, irfftn, ifftn
 from .wavefunction import Wavefunction
 from ..parallel import mpiroot
+from ..counter import Counter
 
 from sunyata.models.systems.empty import empty_ase_cell
 from sunyata.parsers.text import parse_one_value
 
 
 class QEWavefunctionLoader(WavefunctionLoader):
+
+    def __init__(self, fftgrid="density"):
+        self.fftgrid = fftgrid
+        self.dft = None
+        self.wft = None
+        super(QEWavefunctionLoader, self).__init__()
+
 
     def scan(self):
         super(QEWavefunctionLoader, self).scan()
@@ -33,17 +41,25 @@ class QEWavefunctionLoader(WavefunctionLoader):
         cell = Cell(empty_ase_cell(a1, a2, a3, unit="bohr"))
 
         fftgrid = dxml.find("PLANE_WAVES/FFT_GRID").attrib
-        self.dft = FourierTransform(
-            int(fftgrid["nr1"]), int(fftgrid["nr2"]), int(fftgrid["nr3"])
-        )
-        self.wft = FourierTransform(
-            int(fftgrid["nr1"]), int(fftgrid["nr2"]), int(fftgrid["nr3"])
-            #int(fftgrid["nr1"]) // 45, int(fftgrid["nr2"]) // 45, int(fftgrid["nr3"]) // 45
-        )
+        grids = np.array([fftgrid["nr1"], fftgrid["nr2"], fftgrid["nr3"]], dtype=np.int_)
+        self.dft = FourierTransform(grids[0], grids[1], grids[2])
+        if self.fftgrid == "density":
+            n1, n2, n3 = grids
+        elif self.fftgrid == "wave":
+            n1, n2, n3 = np.array(grids / np.sqrt(2), dtype=int)
+        else:
+            assert len(fftgrid) == 3
+            n1, n2, n3 = self.fftgrid
+        self.wft = FourierTransform(n1, n2, n3)
 
         gxml = etree.parse("K00001/gkvectors.xml").getroot()
         self.gamma = True if "T" in gxml.find("GAMMA_ONLY").text else False
         assert self.gamma, "Only gamma point calculation is supported now"
+        if self.gamma:
+            yzplane = np.zeros((n2, n3))
+            yzplane[n2 // 2 + 1:, :] = 1
+            yzplane[0, n3 // 2 + 1:] = 1
+            self.yzlowerplane = zip(*np.nonzero(yzplane))
         self.npw = int(gxml.find("NUMBER_OF_GK-VECTORS").text)
 
         self.gvecs = np.fromstring(gxml.find("GRID").text,
@@ -52,7 +68,6 @@ class QEWavefunctionLoader(WavefunctionLoader):
         assert np.ptp(self.gvecs[:, 0]) <= self.dft.n1
         assert np.ptp(self.gvecs[:, 1]) <= self.dft.n2
         assert np.ptp(self.gvecs[:, 2]) <= self.dft.n3
-        # self.gvecs[:, [0, 2]] = self.gvecs[:, [2, 0]]
 
         euxml = etree.parse("K00001/eigenval1.xml").getroot()
         edxml = etree.parse("K00001/eigenval2.xml").getroot()
@@ -82,166 +97,77 @@ class QEWavefunctionLoader(WavefunctionLoader):
         # TODO: first column and row read, then bcast to all processors
         super(QEWavefunctionLoader, self).load(iorbs)
 
+        c = Counter(len(iorbs),
+                    message="{n} orbitals ({percent}%) loaded (on processor 0, norbs = {ntot})...")
+
+        iuorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "up", iorbs)
+        idorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "down", iorbs)
+
         iterxml = etree.iterparse("K00001/evc1.xml")
         for event, leaf in iterxml:
             if "evc." in leaf.tag:
                 band = parse_one_value(int, leaf.tag)
-                if ("up", band) in self.wfc.sb_iorb_map:
-                    iorb = self.wfc.sb_iorb_map[("up", band)]
-                    if iorb in iorbs:
-                        # psir = self.parse_psir_from_text(leaf.text)
-                        psir = self.rparse_psir_from_text(leaf.text)
-                        psir = self.normalize(psir)
-                        self.wfc.iorb_psir_map[iorb] = psir
+                iorb = self.wfc.sb_iorb_map.get(("up", band))
+                if iorb in iuorbs:
+                    psir = self.parse_psir_from_text(leaf.text)
+                    self.wfc.iorb_psir_map[iorb] = self.normalize(psir)
+                    c.count()
             leaf.clear()
-
-        if mpiroot:
-            print("........")
 
         iterxml = etree.iterparse("K00001/evc2.xml")
         for event, leaf in iterxml:
             if "evc." in leaf.tag:
                 band = parse_one_value(int, leaf.tag)
-                if ("down", band) in self.wfc.sb_iorb_map:
-                    iorb = self.wfc.sb_iorb_map[("down", band)]
-                    if iorb in iorbs:
-                        psir = self.rparse_psir_from_text(leaf.text)
-                        psir = self.normalize(psir)
-                        self.wfc.iorb_psir_map[iorb] = psir
+                iorb = self.wfc.sb_iorb_map.get(("down", band))
+                if iorb in idorbs:
+                    psir = self.parse_psir_from_text(leaf.text)
+                    self.wfc.iorb_psir_map[iorb] = self.normalize(psir)
+                    c.count()
             leaf.clear()
 
-        if mpiroot:
-            print("........")
-
     def parse_psir_from_text(self, text):
-        print("Total memory usage (on process 0):")
-        print("{:.2f} MB".format(
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
-        ))
-        if mpiroot:
-            print("parse_psir_from_text")
-        c = np.fromstring(
-            text.replace(",", "\n"),
-            sep="\n", dtype=np.float_).view(np.complex_)
+        """Get orbital in real space from QE xml file.
 
-        n1, n2, n3 = self.wfc.ft.n1, self.wfc.ft.n2, self.wfc.ft.n3
+        Args:
+            text: text of "evc.X" leafs in QE evc{1/2}.xml file
 
-        psig = np.zeros((self.dft.n1, self.dft.n2, self.dft.n3), dtype=np.complex_)
-        psig[self.gvecs[:, 0], self.gvecs[:, 1], self.gvecs[:, 2]] = c
-        if mpiroot:
-            print(n1, n2, n3, self.dft.n1, self.dft.n2, self.dft.n3)
-            print("psig loaded")
-            print(psig)
-            print("~")
+        Returns:
+            Real space orbital defined on grid specified by self.wfc.ft (self.wft)
 
-        sspsig = fftshift(psig)[
-            (self.dft.n1 - n1) // 2:(self.dft.n1 - n1) // 2 + n1,
-            (self.dft.n2 - n2) // 2:(self.dft.n2 - n2) // 2 + n2,
-            (self.dft.n3 - n3) // 2:(self.dft.n3 - n3) // 2 + n3,
-        ]
+        """
+        assert self.gamma, "Only gamma point is implemented yet"
 
-        if self.gamma:
-            sspsig = sspsig + sspsig[::-1, ::-1, ::-1].conjugate()
-            spsig1 = ifftshift(sspsig)
-            spsig1[0, 0, 0] /= 2.
-
-        spsig = ifftshift(sspsig)
-
-        print("spsig1")
-        print(spsig1)
-
-        spsig2 = np.zeros(sspsig.shape, dtype=np.complex_)
-        if self.gamma:
-            for ig1, ig2, ig3 in np.ndindex(n1, n2, n3):
-                spsig2[ig1, ig2, ig3] = spsig[ig1, ig2, ig3] + spsig[-ig1, -ig2, -ig3].conjugate()
-            spsig2[0, 0, 0] /= 2
-
-        if mpiroot:
-            print("spsig2")
-            print(spsig2)
-            print(np.isclose(spsig1, spsig2))
-            print("----------")
-
-        if self.gamma:
-            for ig1, ig2, ig3 in np.ndindex(n1, n2, n3):
-                rig1 = ig1 if ig1 < n1 // 2 + 1 else ig1 - n1
-                rig2 = ig2 if ig2 < n2 // 2 + 1 else ig2 - n2
-                rig3 = ig3 if ig3 < n3 // 2 + 1 else ig3 - n3
-                if ((rig1 < 0) or (rig1 == 0 and rig2 < 0)
-                    or (rig1 == 0 and rig2 == 0 and rig3 < 0)):
-                    spsig[ig1, ig2, ig3] = spsig[-ig1, -ig2, -ig3].conjugate()
-
-        if mpiroot:
-            print(spsig)
-            print(np.isclose(spsig, spsig1))
-            print(np.isclose(spsig, spsig2))
-            print("----------")
-            print("fft...")
-
-        spsir = self.wfc.ft.backward(spsig)
-
-        if mpiroot:
-            print("fft finished...")
-        return spsir
-
-
-    def rparse_psir_from_text(self, text):
-        print("Total memory usage (on process 0):")
-        print("{:.2f} MB".format(
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
-        ))
-        if mpiroot:
-            print("rparse_psir_from_text")
         c = np.fromstring(
             text.replace(",", "\n"),
             sep="\n", dtype=np.float_).view(np.complex_)
 
         n1, n2, n3 = self.wft.n1, self.wft.n2, self.wft.n3
+        dn1, dn2, dn3 = self.dft.n1, self.dft.n2, self.dft.n3
 
-        psig_zyx = np.zeros((n3, n2, n1 // 2 + 1), dtype=np.complex_)
-        # fpsig_zyx = np.zeros((n3, n2, n1), dtype=np.complex_)
+        # Read orbital in density grid
+        # x and z axes are switched for convenience of rFFT
+        psig_zyx = np.zeros((dn3, dn2, dn1 // 2 + 1), dtype=np.complex_)
         psig_zyx[self.gvecs[:, 2], self.gvecs[:, 1], self.gvecs[:, 0]] = c
-        # fpsig_zyx[self.gvecs[:, 2], self.gvecs[:, 1], self.gvecs[:, 0]] = c
-        # if mpiroot:
-        #     print("psig_zyx loaded")
-        #     print(psig_zyx)
-        #     print("~")
-        #
-        # spsig_zyx = ifftshift(
-        #     fftshift(psig_zyx_half)[
-        #          (self.dft.n3 - n3 - 1) // 2 + 1:(self.dft.n3 - n3 - 1) // 2 + 1 + n3,
-        #          (self.dft.n2 - n2 - 1) // 2 + 1:(self.dft.n2 - n2 - 1) // 2 + 1 + n2,
-        #          (self.dft.n1 - n1 - 1) // 2 + 1:(self.dft.n1 - n1 - 1) // 2 + 1 + n1,
-        #          ]
-        # )
-        #
 
-        # if self.gamma:
-        #     for ig1, ig2, ig3 in np.ndindex(n1, n2, n3):
-        #         rig1 = ig1 if ig1 < n1 // 2 + 1 else ig1 - n1
-        #         rig2 = ig2 if ig2 < n2 // 2 + 1 else ig2 - n2
-        #         rig3 = ig3 if ig3 < n3 // 2 + 1 else ig3 - n3
-        #         if ((rig1 < 0) or (rig1 == 0 and rig2 < 0)
-        #             or (rig1 == 0 and rig2 == 0 and rig3 < 0)):
-        #             fpsig_zyx[ig3, ig2, ig1] = fpsig_zyx[-ig3, -ig2, -ig1].conjugate()
-        # fpsir_zyx = ifftn(fpsig_zyx)
+        # If a smoother grid is required, crop high frequency components
+        if (n1, n2, n3) != (dn1, dn2, dn3):
+            psig_zyx = ifftshift(
+                fftshift(psig_zyx, axes=(0, 1))[
+                (dn3 - n3 - 1) // 2 + 1:(dn3 - n3 - 1) // 2 + 1 + n3,
+                (dn2 - n2 - 1) // 2 + 1:(dn2 - n2 - 1) // 2 + 1 + n2,
+                0: n1 // 2 + 1,
+                ], axes=(0, 1)
+            )
+        assert psig_zyx.shape == (n3, n2, n1 // 2 + 1)
 
-        if self.gamma:
-            yzlowerplane = np.zeros((n2, n3))
-            yzlowerplane[n2 // 2 + 1:, :] = 1
-            yzlowerplane[0, n3 // 2 + 1:] = 1
-            #
-            # if mpiroot:
-            #     print("yzlowerplane")
-            #     print(yzlowerplane)
-            for ig2, ig3 in zip(*np.nonzero(yzlowerplane)):
-                psig_zyx[ig3, ig2, 0] = psig_zyx[-ig3, -ig2, 0].conjugate()
+        # Complete psig in yz plane
+        for ig2, ig3 in self.yzlowerplane:
+            psig_zyx[ig3, ig2, 0] = psig_zyx[-ig3, -ig2, 0].conjugate()
+
+        # rFFT in x direction (x has been switched to last axes), FFT in y, z direction
         psir_zyx = irfftn(psig_zyx, s=(n3, n2, n1))
 
-        if mpiroot:
-            print("fft finished...")
-        #
-        # fpsir = fpsir_zyx.swapaxes(0, 2)
+        # Switch back x, z axes
         psir = psir_zyx.swapaxes(0, 2)
 
-        return psir #, fpsir
+        return psir

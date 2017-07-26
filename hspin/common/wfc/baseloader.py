@@ -30,7 +30,6 @@ class WavefunctionLoader(object):
                 self.__class__.__name__
             ))
 
-
     def info(self):
         if mpiroot:
             wfc = self.wfc
