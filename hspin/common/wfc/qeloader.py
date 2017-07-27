@@ -94,7 +94,7 @@ class QEWavefunctionLoader(WavefunctionLoader):
         iuorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "up", iorbs)
         idorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "down", iorbs)
 
-        iterxml = etree.iterparse("K00001/evc1.xml")
+        iterxml = etree.iterparse("K00001/evc1.xml", huge_tree=True)
         for event, leaf in iterxml:
             if "evc." in leaf.tag:
                 band = parse_one_value(int, leaf.tag)
@@ -105,7 +105,7 @@ class QEWavefunctionLoader(WavefunctionLoader):
                     c.count()
             leaf.clear()
 
-        iterxml = etree.iterparse("K00001/evc2.xml")
+        iterxml = etree.iterparse("K00001/evc2.xml", huge_tree=True)
         for event, leaf in iterxml:
             if "evc." in leaf.tag:
                 band = parse_one_value(int, leaf.tag)
