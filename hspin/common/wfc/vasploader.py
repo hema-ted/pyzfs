@@ -44,7 +44,7 @@ class VaspWavefunctionLoader(WavefunctionLoader):
                                 iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map)
 
     def load(self, iorbs):
-        super(VaspWavefunctionLoader, self).load()
+        super(VaspWavefunctionLoader, self).load(iorbs)
 
         counter = 0
         for iorb in iorbs:
