@@ -17,8 +17,8 @@ from .wavefunction import Wavefunction
 from ..parallel import mpiroot
 from ..counter import Counter
 
-from sunyata.models.systems.empty import empty_ase_cell
-from sunyata.parsers.text import parse_one_value
+from ...common import empty_ase_cell
+from ...common import parse_one_value
 
 
 class QEWavefunctionLoader(WavefunctionLoader):
@@ -171,3 +171,6 @@ class QEWavefunctionLoader(WavefunctionLoader):
         psir = psir_zyx.swapaxes(0, 2)
 
         return psir
+
+
+"""Following codes are adapted from """

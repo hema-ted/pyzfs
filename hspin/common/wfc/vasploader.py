@@ -19,7 +19,7 @@ class VaspWavefunctionLoader(WavefunctionLoader):
         super(VaspWavefunctionLoader, self).scan()
 
         from ase.io import read
-        from sunyata.parsers.vasp import vaspwfc
+        from ...common import vaspwfc
 
         # Read cell from POSCAR file
         ase_cell = read("POSCAR")

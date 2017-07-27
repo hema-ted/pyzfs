@@ -19,7 +19,7 @@ class CubeWavefunctionLoader(WavefunctionLoader):
         super(CubeWavefunctionLoader, self).__init__()
 
     def scan(self):
-        from sunyata.parsers.text import parse_one_value
+        from ...common import parse_one_value
         from ase.io.cube import read_cube_data
 
         ufnames = sorted(glob("*up*.cube"))

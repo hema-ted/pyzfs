@@ -3,8 +3,8 @@ import numpy as np
 import os
 from mpi4py import MPI
 from pprint import pprint
-from sunyata.cmdline.argv import parse_sys_argv
-from sunyata.parsers.text import parse_many_values
+from ..common import parse_sys_argv
+from ..common import parse_many_values
 from ..zfs.main import ZFSCalculation
 from ..common.parallel import mpiroot
 
