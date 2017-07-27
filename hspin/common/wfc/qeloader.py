@@ -1,20 +1,11 @@
 from __future__ import absolute_import, division, print_function
-import os
-from time import time
-from glob import glob
 import numpy as np
-from mpi4py import MPI
-from pprint import pprint
-import resource
-
 from lxml import etree
-
 
 from .baseloader import WavefunctionLoader
 from ..cell import Cell
 from ..ft import FourierTransform, fftshift, ifftshift, irfftn, ifftn
 from .wavefunction import Wavefunction
-from ..parallel import mpiroot
 from ..counter import Counter
 
 from ...common import empty_ase_cell
@@ -46,7 +37,7 @@ class QEWavefunctionLoader(WavefunctionLoader):
         if self.fftgrid == "density":
             n1, n2, n3 = grids
         elif self.fftgrid == "wave":
-            n1, n2, n3 = np.array(grids / np.sqrt(2), dtype=int)
+            n1, n2, n3 = np.array(grids / 2, dtype=int)
         else:
             assert len(fftgrid) == 3
             n1, n2, n3 = self.fftgrid
@@ -171,6 +162,3 @@ class QEWavefunctionLoader(WavefunctionLoader):
         psir = psir_zyx.swapaxes(0, 2)
 
         return psir
-
-
-"""Following codes are adapted from """
