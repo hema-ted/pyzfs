@@ -71,8 +71,7 @@ class CubeWavefunctionLoader(WavefunctionLoader):
             else:
                 psir = read_cube_data(fname)[0]
 
-            psir = self.normalize(psir)
-            wfc.iorb_psir_map[iorb] = psir
+            self.wfc.set_psir(iorb, psir)
 
             counter += 1
             if counter >= wfc.norbs // 10:

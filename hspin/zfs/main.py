@@ -137,10 +137,11 @@ class ZFSCalculation:
                 chi = 1
             else:
                 chi = -1
-            psi1r = wfc.iorb_psir_map[i]
-            psi2r = wfc.iorb_psir_map[j]
-            rho1g = wfc.iorb_rhog_map.get(i)
-            rho2g = wfc.iorb_rhog_map.get(j)
+
+            psi1r = wfc.get_psir(i)
+            psi2r = wfc.get_psir(j)
+            rho1g = wfc.get_rhog(i)
+            rho2g = wfc.get_rhog(j)
             rhog = compute_rhog(psi1r, psi2r, self.ft, rho1g=rho1g, rho2g=rho2g)
 
             # Factor to be multiplied with I:

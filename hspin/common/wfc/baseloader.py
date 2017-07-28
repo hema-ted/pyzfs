@@ -9,8 +9,9 @@ from ..parallel import mpiroot
 class WavefunctionLoader(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, memory="critical"):
         self.wfc = None
+        self.memory = memory
         self.scan()
         self.info()
 
@@ -26,8 +27,8 @@ class WavefunctionLoader(object):
     def load(self, iorbs):
         """Load read space KS orbitals to memory, store in wfc.iorb_psir_map."""
         if mpiroot:
-            print("\n{}: loading orbitals into memory...\n".format(
-                self.__class__.__name__
+            print("\n{}: loading orbitals into memory... (memory mode: {})\n".format(
+                self.__class__.__name__, self.memory
             ))
 
     def info(self):
@@ -45,9 +46,3 @@ class WavefunctionLoader(object):
             pprint(wfc.cell.__dict__, indent=4)
             print("  FFT Grid: ")
             pprint(wfc.ft.__dict__, indent=4)
-
-    def normalize(self, psir):
-        """Normalize wavefunction."""
-        assert psir.shape == (self.wfc.ft.n1, self.wfc.ft.n2, self.wfc.ft.n3)
-        norm = np.sqrt(np.sum(np.abs(psir) ** 2) * self.wfc.cell.omega / self.wfc.ft.N)
-        return psir / norm

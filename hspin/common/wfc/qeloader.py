@@ -20,7 +20,6 @@ class QEWavefunctionLoader(WavefunctionLoader):
         self.wft = None
         super(QEWavefunctionLoader, self).__init__()
 
-
     def scan(self):
         super(QEWavefunctionLoader, self).scan()
 
@@ -46,11 +45,6 @@ class QEWavefunctionLoader(WavefunctionLoader):
         gxml = etree.parse("K00001/gkvectors.xml").getroot()
         self.gamma = True if "T" in gxml.find("GAMMA_ONLY").text else False
         assert self.gamma, "Only gamma point calculation is supported now"
-        if self.gamma:
-            yzplane = np.zeros((n2, n3))
-            yzplane[n2 // 2 + 1:, :] = 1
-            yzplane[0, n3 // 2 + 1:] = 1
-            self.yzlowerplane = zip(*np.nonzero(yzplane))
         self.npw = int(gxml.find("NUMBER_OF_GK-VECTORS").text)
 
         self.gvecs = np.fromstring(gxml.find("GRID").text,
@@ -82,7 +76,8 @@ class QEWavefunctionLoader(WavefunctionLoader):
         iorb_fname_map = ["evc1.xml"] * nuorbs + ["evc2.xml"] * ndorbs
 
         self.wfc = Wavefunction(cell=cell, ft=self.wft, nuorbs=nuorbs, ndorbs=ndorbs,
-                                iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map)
+                                iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map,
+                                dft=self.dft, gamma=self.gamma, gvecs=self.gvecs)
 
     def load(self, iorbs):
         # TODO: first column and row read, then bcast to all processors
@@ -100,8 +95,10 @@ class QEWavefunctionLoader(WavefunctionLoader):
                 band = parse_one_value(int, leaf.tag)
                 iorb = self.wfc.sb_iorb_map.get(("up", band))
                 if iorb in iuorbs:
-                    psir = self.parse_psir_from_text(leaf.text)
-                    self.wfc.iorb_psir_map[iorb] = self.normalize(psir)
+                    psig_arr = np.fromstring(
+                        leaf.text.replace(",", "\n"),
+                        sep="\n", dtype=np.float_).view(np.complex_)
+                    self.wfc.set_psig_arr(iorb, psig_arr)
                     c.count()
             leaf.clear()
 
@@ -111,10 +108,25 @@ class QEWavefunctionLoader(WavefunctionLoader):
                 band = parse_one_value(int, leaf.tag)
                 iorb = self.wfc.sb_iorb_map.get(("down", band))
                 if iorb in idorbs:
-                    psir = self.parse_psir_from_text(leaf.text)
-                    self.wfc.iorb_psir_map[iorb] = self.normalize(psir)
+                    psig_arr = np.fromstring(
+                        leaf.text.replace(",", "\n"),
+                        sep="\n", dtype=np.float_).view(np.complex_)
+                    self.wfc.set_psig_arr(iorb, psig_arr)
                     c.count()
             leaf.clear()
+
+        if self.memory == "high":
+            self.wfc.compute_all_psir()
+            self.wfc.clear_all_psig_arr()
+            self.wfc.compute_all_rhog()
+        elif self.memory == "low":
+            self.wfc.compute_all_psir()
+            self.wfc.clear_all_psig_arr()
+        elif self.memory == "critical":
+            pass
+        else:
+            raise ValueError
+
 
     def parse_psir_from_text(self, text):
         """Get orbital in real space from QE xml file.
@@ -162,3 +174,4 @@ class QEWavefunctionLoader(WavefunctionLoader):
         psir = psir_zyx.swapaxes(0, 2)
 
         return psir
+
