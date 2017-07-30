@@ -31,8 +31,8 @@ def compute_ddig(cell, ft):
     ddig = np.zeros([3, 3, n1, n2, n3])
 
     G1_arr = np.outer(G1, fftfreq(n1, d=1 / n1))
-    G2_arr = np.outer(G2, fftfreq(n2, d=1 / n1))
-    G3_arr = np.outer(G3, fftfreq(n3, d=1 / n1))
+    G2_arr = np.outer(G2, fftfreq(n2, d=1 / n2))
+    G3_arr = np.outer(G3, fftfreq(n3, d=1 / n3))
 
     Gx = (  G1_arr[0, :, np.newaxis, np.newaxis]
           + G2_arr[0, np.newaxis, :, np.newaxis]
