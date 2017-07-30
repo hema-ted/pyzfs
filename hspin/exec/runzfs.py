@@ -3,8 +3,8 @@ import numpy as np
 import os
 from mpi4py import MPI
 from pprint import pprint
-from ..common import parse_sys_argv
-from ..common import parse_many_values
+from ..common.external import parse_sys_argv
+from ..common.external import parse_many_values
 from ..zfs.main import ZFSCalculation
 from ..common.parallel import mpiroot
 
@@ -52,7 +52,7 @@ kwargs.update(parse_sys_argv()[1])
 # Change directory
 path = kwargs.pop("path")
 if mpiroot:
-    print("hspin.exec.runzfs: set working directory as \"{}\"...".format(path))
+    print("hspin.exec.runzfs: setting working directory as \"{}\"...".format(path))
 os.chdir(path)
 
 # Construct proper wavefunction loader
@@ -78,8 +78,8 @@ kwargs["wfcloader"] = wfcloader
 
 # ZFS calculation
 if mpiroot:
-    print("\n\n***hspin.exec.runzfs: instantializing ZFSCalculation with following arguments...")
-    pprint(kwargs)
+    print("\n\nhspin.exec.runzfs: instantializing ZFSCalculation with following arguments...")
+    pprint(kwargs, indent=2)
 
 zfscalc = ZFSCalculation(**kwargs)
 zfscalc.solve()

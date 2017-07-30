@@ -1,25 +1,24 @@
 from __future__ import absolute_import, division, print_function
-import os
-from time import time
+
 from glob import glob
+
 import numpy as np
-from mpi4py import MPI
-from pprint import pprint
-import resource
 
 from .baseloader import WavefunctionLoader
+from .wavefunction import Wavefunction
 from ..cell import Cell
 from ..ft import FourierTransform
-from .wavefunction import Wavefunction
 from ..parallel import mpiroot
 
+
 class CubeWavefunctionLoader(WavefunctionLoader):
-    def __init__(self, density=False):
+    def __init__(self, fftgrid="wave", density=False):
         self.density = density
+        self.fftgrid = fftgrid
         super(CubeWavefunctionLoader, self).__init__()
 
     def scan(self):
-        from ...common import parse_one_value
+        from ...common.external import parse_one_value
         from ase.io.cube import read_cube_data
 
         ufnames = sorted(glob("*up*.cube"))
@@ -41,11 +40,16 @@ class CubeWavefunctionLoader(WavefunctionLoader):
         cell = Cell(ase_cell)
         if self.density:
             self.dft = FourierTransform(*psir.shape)
-            ft = FourierTransform(*map(lambda x: x // 2, psir.shape))
-            if mpiroot:
-                print("Charge density grid {} will be interpolated to wavefunction grid {}.\n".format(
-                    map(lambda x: x // 2, psir.shape), psir.shape
-                ))
+            if self.fftgrid == "wave":
+                ft = FourierTransform(*map(lambda x: x // 2, psir.shape))
+                if mpiroot:
+                    print("Charge density grid {} will be interpolated to wavefunction grid {}.\n".format(
+                        map(lambda x: x // 2, psir.shape), psir.shape
+                    ))
+            else:
+                if mpiroot:
+                    print("Charge density grid will be used.\n")
+                ft = FourierTransform(*psir.shape)
         else:
             ft = FourierTransform(*psir.shape)
 

@@ -12,12 +12,14 @@ class indent:
         """
         self.prefix = prefix + " " * n
         self.builtin_print = __builtin__.print
+        self.overridden_print = None
 
     def __call__(self, func):
         def closure(*args, **kwargs):
+            self.overridden_print = __builtin__.print
             __builtin__.print = self.indented_print
             func(*args, **kwargs)
-            __builtin__.print = self.builtin_print
+            __builtin__.print = self.overridden_print
         return closure
 
     def indented_print(self, *args, **kwargs):

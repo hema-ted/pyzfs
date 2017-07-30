@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
+
+import os
 from abc import ABCMeta, abstractmethod
 from pprint import pprint
-import os
-import numpy as np
 
 from ..parallel import mpiroot
+
 
 class WavefunctionLoader(object):
     __metaclass__ = ABCMeta
@@ -19,7 +20,7 @@ class WavefunctionLoader(object):
     def scan(self):
         """Scan current directory, construct wavefunction object"""
         if mpiroot:
-            print("\n{}: scanning current working directory {}...\n".format(
+            print("\n{}: scanning current working directory \"{}\"...\n".format(
                 self.__class__.__name__, os.getcwd()
             ))
 
@@ -27,7 +28,7 @@ class WavefunctionLoader(object):
     def load(self, iorbs):
         """Load read space KS orbitals to memory, store in wfc.iorb_psir_map."""
         if mpiroot:
-            print("\n{}: loading orbitals into memory... (memory mode: {})\n".format(
+            print("\n{}: loading orbitals into memory... (memory mode: \"{}\")\n".format(
                 self.__class__.__name__, self.memory
             ))
 

@@ -106,12 +106,11 @@ class ZFSCalculation:
         )
         self.wfcloader.load(iorbs=iorbs)
         del self.wfcloader
-
+        self.pgrid.comm.barrier()
         self.print_memory_usage()
 
         # Compute dipole-dipole interaction tensor. Due to symmetry we only need the
         # upper triangular part of ddig
-        self.pgrid.comm.barrier()
         if self.pgrid.onroot:
             print("\nComputing dipole-dipole interaction tensor in G space...\n")
         ddig = compute_ddig(self.cell, self.ft)
@@ -187,6 +186,7 @@ class ZFSCalculation:
 
             print("Time elapsed for pair iteration: {:.0f}s".format(time() - tssolve))
 
+    @indent(2)
     def print_memory_usage(self):
         if self.pgrid.onroot:
             print("\nMemory usage (on process 0):")
@@ -218,10 +218,11 @@ class ZFSCalculation:
 
         """
         from lxml import etree
-        from .. import __code__, __version__
+        from .. import __code__, __version__, __git_summary__
         root = etree.Element("root")
         etree.SubElement(root, "code").text = __code__
         etree.SubElement(root, "version").text = __version__
+        etree.SubElement(root, "git_summary").text = __git_summary__
         etree.SubElement(root, "object").text = self.__class__.__name__
         etree.SubElement(root, "DTensor", unit="MHz").text = np.array2string(self.D)
         etree.SubElement(root, "D", unit="MHz").text = "{:.2f}".format(self.Dvalue)

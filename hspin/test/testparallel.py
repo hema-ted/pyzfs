@@ -1,9 +1,11 @@
 from __future__ import absolute_import, division, print_function
+
 from unittest import TestCase, TestLoader, TextTestRunner
+
 import numpy as np
-from numpy.random import randint, choice
-from hspin.common.parallel import ProcessorGrid, DistributedMatrix, SymmetricDistributedMatrix
+from hspin.common.parallel import ProcessorGrid, DistributedMatrix
 from mpi4py import MPI
+from numpy.random import randint, choice
 
 
 def mpisync(func, comm=MPI.COMM_WORLD):
