@@ -51,6 +51,7 @@ class Wavefunction:
             yzplane = np.zeros((self.ft.n2, self.ft.n3))
             yzplane[self.ft.n2 // 2 + 1:, :] = 1
             yzplane[0, self.ft.n3 // 2 + 1:] = 1
+            print yzplane
             self.yzlowerplane = zip(*np.nonzero(yzplane))
 
     def compute_psir_from_psig_arr(self, psig_arr):
@@ -58,34 +59,110 @@ class Wavefunction:
 
         assert self.gamma, "Only gamma-point is implemented"
 
-        dn1, dn2, dn3 = self.dft.n1, self.dft.n2, self.dft.n3
-        n1, n2, n3 = self.ft.n1, self.ft.n2, self.ft.n3
+        # d stands for dense, s stands for smooth
+        nd = np.array([self.dft.n1, self.dft.n2, self.dft.n3])
+        ns = np.array([self.ft.n1, self.ft.n2, self.ft.n3])
+        idxs = np.zeros(3, dtype=int)
+
+        psigzyxd = np.zeros((nd[2], nd[1], nd[0]), dtype=np.complex_)
+        psigzyxd[self.gvecs[:, 2], self.gvecs[:, 1], self.gvecs[:, 0]] = psig_arr
+
+        for i in range(3):
+            d = nd[i] - ns[i]
+            if d % 2 == 0:
+                idxs[i] = d / 2
+            else:
+                if nd[i] % 2 == 0:
+                    idxs[i] = d // 2 + 1
+                else:
+                    idxs[i] = d // 2
+
+        # print(nd)
+        # print(ns)
+        # print(idxs)
+
+        psigzyxs = ifftshift(
+            fftshift(psigzyxd)[
+                idxs[2]:idxs[2] + ns[2],
+                idxs[1]:idxs[1] + ns[1],
+                idxs[0]:idxs[0] + ns[0],
+            ]
+        )
+
+
+
+
+        if self.gamma:
+            for ig1, ig2, ig3 in np.ndindex(ns[0], ns[1], ns[2]):
+                rig1 = ig1 if ig1 < ns[0] // 2 + 1 else ig1 - ns[0]
+                rig2 = ig2 if ig2 < ns[1] // 2 + 1 else ig2 - ns[1]
+                rig3 = ig3 if ig3 < ns[2] // 2 + 1 else ig3 - ns[2]
+                if ((rig1 > 0) or (rig1 == 0 and rig2 > 0)
+                    or (rig1 == 0 and rig2 == 0 and rig3 >= 0)):
+                    continue
+                psigzyxs[ig3, ig2, ig1] = psigzyxs[-ig3, -ig2, -ig1].conjugate()
+
+        psigs = psigzyxs.T
+        psirs = self.ft.backward(psigs)
+
+        return self.normalize(psirs)
+
+        print n1d, n2d, n3d
+        print n1s, n2s, n3s
 
         # Read orbital in density grid
         # x and z axes are switched for convenience of rFFT
-        psig_zyx = np.zeros((dn3, dn2, dn1 // 2 + 1), dtype=np.complex_)
+        psig_zyx = np.zeros((n3d, n2d, n1d), dtype=np.complex_)
         psig_zyx[self.gvecs[:, 2], self.gvecs[:, 1], self.gvecs[:, 0]] = psig_arr
+        #return psig_zyx
 
         # If a smoother grid is required, crop high frequency components
-        if (n1, n2, n3) != (dn1, dn2, dn3):
+        if (n1s, n2s, n3s) != (n1d, n2d, n3d):
+
+            # return fftshift(psig_zyx, axes=(0, 1))[
+            #     (dn3 - n3 - 1) // 2 + 1:(dn3 - n3 - 1) // 2 + 1 + n3,
+            #     (dn2 - n2 - 1) // 2 + 1:(dn2 - n2 - 1) // 2 + 1 + n2,
+            #     0: n1 // 2 + 1,
+            #     ]
+
             psig_zyx = ifftshift(
-                fftshift(psig_zyx, axes=(0, 1))[
-                (dn3 - n3 - 1) // 2 + 1:(dn3 - n3 - 1) // 2 + 1 + n3,
-                (dn2 - n2 - 1) // 2 + 1:(dn2 - n2 - 1) // 2 + 1 + n2,
-                0: n1 // 2 + 1,
-                ], axes=(0, 1)
+                fftshift(psig_zyx)[
+                (n3d - n3s - 1) // 2 + 1:(n3d - n3s - 1) // 2 + 1 + n3s,
+                (n2d - n2s - 1) // 2 + 1:(n2d - n2s - 1) // 2 + 1 + n2s,
+                (n1d - n1s - 1) // 2 + 1:(n1d - n1s - 1) // 2 + 1 + n1s,
+                ]
             )
-        assert psig_zyx.shape == (n3, n2, n1 // 2 + 1)
+        assert psig_zyx.shape == (n3s, n2s, n1s)
+
+        # return psig_zyx
 
         # Complete psig in yz plane
         for ig2, ig3 in self.yzlowerplane:
+            #print(psig_zyx[ig3, ig2, 0])
+            #print(psig_zyx[-ig3, -ig2, 0])
             psig_zyx[ig3, ig2, 0] = psig_zyx[-ig3, -ig2, 0].conjugate()
 
+
+
+        return psig_zyx
+
+        # psig_zyx_complete = np.zeros([n3, n2, n1])
+        #
+        # psig_zyx_complete[:, :, 0: n1 // 2 + 1] = psig_zyx
+        # for ig1, ig2, ig3 in np.ndindex(n1 // 2 + 1, n2, n3):
+        #     psig_zyx_complete[ig1, ig2, ig3] = psig_zyx_complete[-ig1, -ig2, -ig3]
+        #
+        # return psig_zyx_complete
+
         # rFFT in x direction (x has been switched to last axes), FFT in y, z direction
-        psir_zyx = irfftn(psig_zyx, s=(n3, n2, n1))
+        #psir_zyx = irfftn(psig_zyx, s=(n3, n2, n1))
+
+        #return psir_zyx
 
         # Switch back x, z axes
-        psir = psir_zyx.swapaxes(0, 2)
+        psir = psir_zyx.T
+
+
         return self.normalize(psir)
 
     def set_psig_arr(self, iorb, psig_arr):

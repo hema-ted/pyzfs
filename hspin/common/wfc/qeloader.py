@@ -127,51 +127,51 @@ class QEWavefunctionLoader(WavefunctionLoader):
         else:
             raise ValueError
 
-
-    def parse_psir_from_text(self, text):
-        """Get orbital in real space from QE xml file.
-
-        Args:
-            text: text of "evc.X" leafs in QE evc{1/2}.xml file
-
-        Returns:
-            Real space orbital defined on grid specified by self.wfc.ft (self.wft)
-
-        """
-        assert self.gamma, "Only gamma point is implemented yet"
-
-        c = np.fromstring(
-            text.replace(",", "\n"),
-            sep="\n", dtype=np.float_).view(np.complex_)
-
-        n1, n2, n3 = self.wft.n1, self.wft.n2, self.wft.n3
-        dn1, dn2, dn3 = self.dft.n1, self.dft.n2, self.dft.n3
-
-        # Read orbital in density grid
-        # x and z axes are switched for convenience of rFFT
-        psig_zyx = np.zeros((dn3, dn2, dn1 // 2 + 1), dtype=np.complex_)
-        psig_zyx[self.gvecs[:, 2], self.gvecs[:, 1], self.gvecs[:, 0]] = c
-
-        # If a smoother grid is required, crop high frequency components
-        if (n1, n2, n3) != (dn1, dn2, dn3):
-            psig_zyx = ifftshift(
-                fftshift(psig_zyx, axes=(0, 1))[
-                (dn3 - n3 - 1) // 2 + 1:(dn3 - n3 - 1) // 2 + 1 + n3,
-                (dn2 - n2 - 1) // 2 + 1:(dn2 - n2 - 1) // 2 + 1 + n2,
-                0: n1 // 2 + 1,
-                ], axes=(0, 1)
-            )
-        assert psig_zyx.shape == (n3, n2, n1 // 2 + 1)
-
-        # Complete psig in yz plane
-        for ig2, ig3 in self.yzlowerplane:
-            psig_zyx[ig3, ig2, 0] = psig_zyx[-ig3, -ig2, 0].conjugate()
-
-        # rFFT in x direction (x has been switched to last axes), FFT in y, z direction
-        psir_zyx = irfftn(psig_zyx, s=(n3, n2, n1))
-
-        # Switch back x, z axes
-        psir = psir_zyx.swapaxes(0, 2)
-
-        return psir
+    #
+    # def parse_psir_from_text(self, text):
+    #     """Get orbital in real space from QE xml file.
+    #
+    #     Args:
+    #         text: text of "evc.X" leafs in QE evc{1/2}.xml file
+    #
+    #     Returns:
+    #         Real space orbital defined on grid specified by self.wfc.ft (self.wft)
+    #
+    #     """
+    #     assert self.gamma, "Only gamma point is implemented yet"
+    #
+    #     c = np.fromstring(
+    #         text.replace(",", "\n"),
+    #         sep="\n", dtype=np.float_).view(np.complex_)
+    #
+    #     n1, n2, n3 = self.wft.n1, self.wft.n2, self.wft.n3
+    #     dn1, dn2, dn3 = self.dft.n1, self.dft.n2, self.dft.n3
+    #
+    #     # Read orbital in density grid
+    #     # x and z axes are switched for convenience of rFFT
+    #     psig_zyx = np.zeros((dn3, dn2, dn1 // 2 + 1), dtype=np.complex_)
+    #     psig_zyx[self.gvecs[:, 2], self.gvecs[:, 1], self.gvecs[:, 0]] = c
+    #
+    #     # If a smoother grid is required, crop high frequency components
+    #     if (n1, n2, n3) != (dn1, dn2, dn3):
+    #         psig_zyx = ifftshift(
+    #             fftshift(psig_zyx, axes=(0, 1))[
+    #             (dn3 - n3 - 1) // 2 + 1:(dn3 - n3 - 1) // 2 + 1 + n3,
+    #             (dn2 - n2 - 1) // 2 + 1:(dn2 - n2 - 1) // 2 + 1 + n2,
+    #             0: n1 // 2 + 1,
+    #             ], axes=(0, 1)
+    #         )
+    #     assert psig_zyx.shape == (n3, n2, n1 // 2 + 1)
+    #
+    #     # Complete psig in yz plane
+    #     for ig2, ig3 in self.yzlowerplane:
+    #         psig_zyx[ig3, ig2, 0] = psig_zyx[-ig3, -ig2, 0].conjugate()
+    #
+    #     # rFFT in x direction (x has been switched to last axes), FFT in y, z direction
+    #     psir_zyx = irfftn(psig_zyx, s=(n3, n2, n1))
+    #
+    #     # Switch back x, z axes
+    #     psir = psir_zyx.swapaxes(0, 2)
+    #
+    #     return psir
 
