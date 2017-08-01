@@ -68,6 +68,9 @@ elif wfcfmt in ["cube-wfc", "cube-density"]:
     wfcloader = CubeWavefunctionLoader(
         density=True if wfcfmt == "cube-density" else False
     )
+elif wfcfmt == "qbox":
+    from ..common.wfc.qboxloader import QboxWavefunctionLoader
+    wfcloader = QboxWavefunctionLoader()
 elif wfcfmt == "vasp":
     from ..common.wfc.vasploader import VaspWavefunctionLoader
     wfcloader = VaspWavefunctionLoader()

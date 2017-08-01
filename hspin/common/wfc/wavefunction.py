@@ -51,7 +51,6 @@ class Wavefunction:
             yzplane = np.zeros((self.ft.n2, self.ft.n3))
             yzplane[self.ft.n2 // 2 + 1:, :] = 1
             yzplane[0, self.ft.n3 // 2 + 1:] = 1
-            print yzplane
             self.yzlowerplane = zip(*np.nonzero(yzplane))
 
     def compute_psir_from_psig_arr(self, psig_arr):
@@ -66,8 +65,6 @@ class Wavefunction:
 
         psigzyxd = np.zeros((nd[2], nd[1], nd[0] // 2 + 1), dtype=np.complex_)
         psigzyxd[self.gvecs[:, 2], self.gvecs[:, 1], self.gvecs[:, 0]] = psig_arr
-
-        #print(psigzyxd)
 
         for i in range(1, 3):  # idxs[0] = 0 for gamma trick
             d = nd[i] - ns[i]
