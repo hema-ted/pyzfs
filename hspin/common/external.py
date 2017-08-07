@@ -33,7 +33,7 @@ def parse_sys_argv(flags=None):
 
     """
 
-    argv = np.array(sys.argv[1:], dtype=str)
+    argv = np.array(sys.argv[1:], dtype=object)
     argc = len(argv)
     unparsed = np.ones(argc, dtype=bool)
 

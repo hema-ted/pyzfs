@@ -18,26 +18,28 @@ from ..parallel import mpiroot
 
 
 class QboxWavefunctionLoader(WavefunctionLoader):
-    def __init__(self):
+    def __init__(self, filename=None):
+        self.xmlfile = filename
         super(QboxWavefunctionLoader, self).__init__()
 
     def scan(self):
         super(QboxWavefunctionLoader, self).scan()
 
-        xmllist = sorted(glob("*xml"), key=lambda f: os.path.getsize(f))
-        if len(xmllist) == 0:
-            raise IOError("No xml file found in current directory: {}".format(os.getcwd()))
-        elif len(xmllist) == 1:
-            self.xmlfile = xmllist[0]
-            if mpiroot:
-                print("Reading wavefunction from file {}".format(self.xmlfile))
-        else:
-            self.xmlfile = xmllist[-1]
-            if mpiroot:
-                print("More than one xml files found: {}".format(xmllist))
-                print("Assume wavefunction is in the largest xml file: {} ({} MB)".format(
-                    self.xmlfile, os.path.getsize(self.xmlfile) / 1024 ** 2
-                ))
+        if self.xmlfile is None:
+            xmllist = sorted(glob("*xml"), key=lambda f: os.path.getsize(f))
+            if len(xmllist) == 0:
+                raise IOError("No xml file found in current directory: {}".format(os.getcwd()))
+            elif len(xmllist) == 1:
+                self.xmlfile = xmllist[0]
+            else:
+                self.xmlfile = xmllist[-1]
+                if mpiroot:
+                    print("More than one xml files found: {}".format(xmllist))
+                    print("Assume wavefunction is in the largest xml file: {} ({} MB)".format(
+                        self.xmlfile, os.path.getsize(self.xmlfile) / 1024 ** 2
+                    ))
+        if mpiroot:
+            print("Reading wavefunction from file {}".format(self.xmlfile))
 
         iterxml = etree.iterparse(self.xmlfile, huge_tree=True, events=("start", "end"))
 
@@ -120,6 +122,6 @@ class QboxWavefunctionLoader(WavefunctionLoader):
                         base64.decodestring(leaf.text), dtype=np.float64
                     ).reshape(self.wfc.ft.n3, self.wfc.ft.n2, self.wfc.ft.n1).T
                     self.wfc.set_psir(iorb, psir)
+                    c.count()
                 band += 1
                 leaf.clear()
-                c.count()

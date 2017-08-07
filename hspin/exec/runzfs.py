@@ -25,11 +25,14 @@ Acceptable kwargs are:
         "cube-wfc": cube files of (real) wavefunctions (Kohn-Sham orbitals).
         "cube-density": cube files of (signed) wavefunction squared, mainly used to
             support pp.x output with plot_num = 7 and lsign = .TRUE.
+        "qbox": Qbox xml file
         file name convention for cube file:
             1. must end with ".cube".
             2. must contains either "up" or "down", intepreted as spin channel.
             3. the LAST integer value found the file name is interpreted as band index.
         Default is "qe"
+
+    --filename: name for input wavefunction. Currently only works for Qbox wavefunction
 
     --fftgrid: "density" or "wave", currently only works for QE wavefunction. If "wave"
         is specified, orbitals will use a reduced grid for FFT. Default is "wave".
@@ -70,7 +73,8 @@ elif wfcfmt in ["cube-wfc", "cube-density"]:
     )
 elif wfcfmt == "qbox":
     from ..common.wfc.qboxloader import QboxWavefunctionLoader
-    wfcloader = QboxWavefunctionLoader()
+    filename = kwargs.pop("filename", None)
+    wfcloader = QboxWavefunctionLoader(filename=filename)
 elif wfcfmt == "vasp":
     from ..common.wfc.vasploader import VaspWavefunctionLoader
     wfcloader = VaspWavefunctionLoader()
