@@ -19,5 +19,5 @@ class Cell:
 
     def show(self, data):
         """Visualize the cell with VESTA."""
-        from sunyata.data.volumetric import VData
+        from sunyata.structure.volumetric import VData
         VData(ase_cell=self.ase_cell, data=data).show()

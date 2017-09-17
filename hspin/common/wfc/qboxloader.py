@@ -89,6 +89,9 @@ class QboxWavefunctionLoader(WavefunctionLoader):
             if event == "end" and leaf.tag == "grid_function":
                 leaf.clear()
 
+            if event == "start" and leaf.tag == "wavefunction_velocity":
+                break
+
         norbs = nuorbs + ndorbs
         iorb_fname_map = [self.xmlfile] * norbs
 
@@ -125,3 +128,6 @@ class QboxWavefunctionLoader(WavefunctionLoader):
                     c.count()
                 band += 1
                 leaf.clear()
+
+            if event == "start" and leaf.tag == "wavefunction_velocity":
+                break
