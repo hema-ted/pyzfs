@@ -1,8 +1,8 @@
 from __future__ import print_function, division
 from subprocess import Popen, PIPE
 import os
-from common.io import indent
-from common.parallel import mpiroot
+from .common.io import indent
+from .common.parallel import mpiroot
 
 __code__ = "hpsi"
 __version__ = "0.0.0"
