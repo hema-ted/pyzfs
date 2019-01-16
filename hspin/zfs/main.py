@@ -164,9 +164,10 @@ class ZFSCalculation:
         self.ev, self.evc = np.linalg.eig(self.D)
 
         # For triplet states, compute D and E parameters:
+        # Denote three eigenvalues as Dx, Dy, Dz: |Dz| > |Dx| > |Dy|
         # D = 3/2 Dz, E = 1/2(Dx - Dy)
         args = np.abs(self.ev).argsort()
-        dy, dx, dz = np.abs(self.ev)[args]
+        dy, dx, dz = self.ev[args]
         self.Dvalue = 1.5 * dz
         self.Evalue = 0.5 * (dx - dy)
 
@@ -180,6 +181,8 @@ class ZFSCalculation:
             print(self.evc[:, 0])
             print(self.evc[:, 1])
             print(self.evc[:, 2])
+            print("Dx, Dy, Dz (|Dz| > |Dx| > |Dy|) (MHz): ")
+            print(dx, dy, dz)
             print("D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue))
 
             self.print_memory_usage()

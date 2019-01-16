@@ -12,7 +12,7 @@ mub = physical_constants["Bohr magneton"][0]
 
 prefactor = np.prod(
     [
-        -1,  # sign convention for D tensor
+        # -1,  # sign convention for D tensor
         # 1. / 2,            # eq. 2 from PRB paper
         1. / 4,  # eq. 2 and eq. 8 from PRB paper
         mu0 / (4 * np.pi),  # magnetic constant
