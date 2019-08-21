@@ -263,7 +263,7 @@ class SymmetricDistributedMatrix(DistributedMatrix):
                     if i < self.mloc and j < self.nloc
                     ]
             else:
-                return zip(*np.triu_indices(self.mloc))
+                return list(zip(*np.triu_indices(self.mloc)))
         else:
             return []
 

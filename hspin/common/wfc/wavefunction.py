@@ -51,7 +51,7 @@ class Wavefunction:
             yzplane = np.zeros((self.ft.n2, self.ft.n3))
             yzplane[self.ft.n2 // 2 + 1:, :] = 1
             yzplane[0, self.ft.n3 // 2 + 1:] = 1
-            self.yzlowerplane = zip(*np.nonzero(yzplane))
+            self.yzlowerplane = list(zip(*np.nonzero(yzplane)))
 
     def compute_psir_from_psig_arr(self, psig_arr):
         """Compute psi(r) based on psi(G) defined on self.gvecs"""
