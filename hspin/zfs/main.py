@@ -123,7 +123,7 @@ class ZFSCalculation:
             print("\nIterating over pairs...\n")
         wfc = self.wfc
 
-        c = Counter(len(self.I.get_triu_iterator()), percent=0.01,
+        c = Counter(len(list(self.I.get_triu_iterator())), percent=0.01,
                     message="(process 0) {n} pairs ({percent}%) computed in {dt}...")
 
         for iloc, jloc in self.I.get_triu_iterator():

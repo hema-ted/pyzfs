@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
-import __builtin__
-
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__
 
 class indent:
     """Decorator to make all print commands in a function become indented"""

@@ -97,4 +97,8 @@ zfscalc.solve()
 # Write global I matrix and xml file
 if zfscalc.pgrid.onroot:
     np.save("Iijab.npy", zfscalc.Iglobal)
-    open("zfs.xml", "w").write(zfscalc.get_xml())
+    xml = zfscalc.get_xml()
+    try:
+        open("zfs.xml", "w").write(xml)
+    except TypeError:
+        open("zfs.xml", "wb").write(xml)
