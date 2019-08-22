@@ -3,6 +3,7 @@ import numpy as np
 import os
 import h5py
 from lxml import etree
+from mpi4py import MPI
 
 from .baseloader import WavefunctionLoader
 from ..cell import Cell
@@ -100,34 +101,82 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
                                 dft=self.dft, gamma=self.gamma, gvecs=None)
 
     def load(self, iorbs):
-        # TODO: first column and row read, then bcast to all processors
         super(QEHDF5WavefunctionLoader, self).load(iorbs)
 
         c = Counter(len(iorbs), percent=0.1,
                     message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
 
-        iuorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "up", iorbs)
-        idorbs = filter(lambda iorb: self.wfc.iorb_sb_map[iorb][0] == "down", iorbs)
+        # define varibles for MPI communications
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+        onroot = rank == 0
 
-        # parse KS orbitals
-        for ispin in range(2):
-            wfcfile = "wfcup1.hdf5" if ispin == 0 else "wfcdw1.hdf5"
-            wfch5 = h5py.File(os.path.join(
-                self.root, "{}.save".format(self.prefix), wfcfile))
+        # print("rank:", rank)
+        iorbs_of_rank = None
+        if onroot:
+            iorbs_of_rank = {0: iorbs}
+            for r in range(1, size):
+                iorbs_of_rank[r] = comm.recv(source=r)
+        else:
+            comm.send(iorbs, dest=0)
 
-            gvecs = np.array(wfch5["MillerIndices"])
+        comm.barrier()
+
+        # processor 0 parse wavefunctions
+        gvecs = ngvecs = psig_arrs_all = None
+        if onroot:
+            # print("iorbs_of_rank:", iorbs_of_rank)
+            # print(set.union(*iorbs_of_rank.values()))
+            iorbs_all = set.union(*iorbs_of_rank.values())
+            psig_arrs_all = {}
+
+            # read wavefunctions
+            for ispin in range(2):
+                wfcfile = "wfcup1.hdf5" if ispin == 0 else "wfcdw1.hdf5"
+                wfch5 = h5py.File(os.path.join(
+                    self.root, "{}.save".format(self.prefix), wfcfile))
+
+                gvecs = np.array(wfch5["MillerIndices"], dtype=int)
+                ngvecs = gvecs.shape[0]
+                assert gvecs.shape == (ngvecs, 3)
+
+                evc = np.array(wfch5["evc"])
+
+                for ievc in range(evc.shape[0]):
+                    band = ievc + 1
+                    iorb = self.wfc.sb_iorb_map.get(("up" if ispin == 0 else "down", band))
+
+                    if iorb in iorbs_all:
+                        psig_arrs_all[iorb] = evc[ievc].view(complex).copy()
+                        c.count()
+
+        # broadcast G vectors
+        ngvecs = comm.bcast(ngvecs, root=0)
+        if onroot:
             self.wfc.gvecs = gvecs
+        if not onroot:
+            self.wfc.gvecs = np.zeros([ngvecs, 3], dtype=int)
+        comm.Bcast(self.wfc.gvecs, root=0)
 
-            evc = np.array(wfch5["evc"])
+        # scatter wavefunctions
+        if rank == 0:
+            psig_arrs = {iorb: psig_arrs_all[iorb] for iorb in iorbs}
+            for r in range(1, size):
+                for iorb in iorbs_of_rank[r]:
+                    # print("send tag", iorb)
+                    comm.Send(psig_arrs_all[iorb], dest=r, tag=iorb)
 
-            for ievc in range(evc.shape[0]):
-                band = ievc + 1
-                iorb = self.wfc.sb_iorb_map.get(("up" if ispin == 0 else "down", band))
+        else:
+            psig_arrs = {iorb: np.zeros(ngvecs, complex) for iorb in iorbs}
+            for iorb in iorbs:
+                # print("recv tag", iorb)
+                comm.Recv(psig_arrs[iorb], source=0, tag=iorb)
 
-                if iorb in (iuorbs if ispin == 0 else idorbs):
-                    psig_arr = evc[ievc].view(complex)
-                    self.wfc.set_psig_arr(iorb, psig_arr)
-                    c.count()
+        comm.barrier()
+
+        for iorb in iorbs:
+            self.wfc.set_psig_arr(iorb, psig_arrs[iorb])
 
         if self.memory == "high":
             self.wfc.compute_all_psir()
