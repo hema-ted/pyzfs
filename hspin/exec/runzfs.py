@@ -43,7 +43,7 @@ Acceptable kwargs are:
 # Default arguments
 kwargs = {
     "path": ".",
-    "wfcfmt": "qe",
+    "wfcfmt": "qeh5",
     "fftgrid": "wave",
     "comm": MPI.COMM_WORLD,
     "memory": "low"
@@ -80,7 +80,7 @@ elif wfcfmt == "vasp":
     wfcloader = VaspWavefunctionLoader()
 elif wfcfmt == "qeh5":
     from ..common.wfc.qeh5loader import QEHDF5WavefunctionLoader
-    wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid)
+    wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid, comm=kwargs["comm"])
 else:
     raise ValueError("Unsupported wfcfmt: {}".format(wfcfmt))
 

@@ -16,10 +16,11 @@ from ...common.external import empty_ase_cell
 
 class QEHDF5WavefunctionLoader(WavefunctionLoader):
 
-    def __init__(self, fftgrid="density"):
+    def __init__(self, fftgrid="density", comm=MPI.COMM_WORLD):
         self.fftgrid = fftgrid
         self.dft = None
         self.wft = None
+        self.comm = comm
         super(QEHDF5WavefunctionLoader, self).__init__()
 
     def scan(self):
@@ -103,16 +104,12 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
     def load(self, iorbs):
         super(QEHDF5WavefunctionLoader, self).load(iorbs)
 
-        c = Counter(len(iorbs), percent=0.1,
-                    message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
-
         # define varibles for MPI communications
-        comm = MPI.COMM_WORLD
+        comm = self.comm
         rank = comm.Get_rank()
         size = comm.Get_size()
         onroot = rank == 0
 
-        # print("rank:", rank)
         iorbs_of_rank = None
         if onroot:
             iorbs_of_rank = {0: iorbs}
@@ -126,12 +123,12 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
         # processor 0 parse wavefunctions
         gvecs = ngvecs = psig_arrs_all = None
         if onroot:
-            # print("iorbs_of_rank:", iorbs_of_rank)
-            # print(set.union(*iorbs_of_rank.values()))
             iorbs_all = set.union(*iorbs_of_rank.values())
             psig_arrs_all = {}
 
             # read wavefunctions
+            c = Counter(len(iorbs_all), percent=0.1,
+                        message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
             for ispin in range(2):
                 wfcfile = "wfcup1.hdf5" if ispin == 0 else "wfcdw1.hdf5"
                 wfch5 = h5py.File(os.path.join(
@@ -164,13 +161,11 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
             psig_arrs = {iorb: psig_arrs_all[iorb] for iorb in iorbs}
             for r in range(1, size):
                 for iorb in iorbs_of_rank[r]:
-                    # print("send tag", iorb)
                     comm.Send(psig_arrs_all[iorb], dest=r, tag=iorb)
 
         else:
             psig_arrs = {iorb: np.zeros(ngvecs, complex) for iorb in iorbs}
             for iorb in iorbs:
-                # print("recv tag", iorb)
                 comm.Recv(psig_arrs[iorb], source=0, tag=iorb)
 
         comm.barrier()
