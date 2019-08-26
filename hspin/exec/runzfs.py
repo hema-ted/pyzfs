@@ -11,16 +11,17 @@ from ..common.parallel import mpiroot
 """Run Zero Field Splitting calculation
 
 Example:
-    mpirun -n 256 python -m hspin.exec.runzfs --wfcfmt vasp
+    mpirun -n 256 python -m hspin.exec.runzfs --wfcfmt qeh5 --prefix pwscf
     mpirun -n 256 python -m hspin.exec.runzfs --path /home/mahe/zfs/nv/pwscf.save --wfcfmt qe
-    mpirun -n 256 python -m hspin.exec.runzfs --wfcfmt qe --fftgrid 60,60,60
+    mpirun -n 256 python -m hspin.exec.runzfs --wfcfmt vasp
 
 Acceptable kwargs are:
     --path: working directory for this calculation. Python will first change
         the working dir before any calculations. Default is ".".
 
     --wfcfmt: format of input wavefunction. Supported values are
-        "qe": Quantum Espresso save file. path should contains "data-files.xml" etc.
+        "qeh5": Quantum Espresso HDF5 save file. path should contains "prefix.xml" and save folder.
+        "qe": Quantum Espresso (v6.1) save file. path should be the save folder that contains "data-files.xml", etc.
         "vasp": VASP WAVECAR and POSCAR file.
         "cube-wfc": cube files of (real) wavefunctions (Kohn-Sham orbitals).
         "cube-density": cube files of (signed) wavefunction squared, mainly used to
@@ -28,11 +29,11 @@ Acceptable kwargs are:
         "qbox": Qbox xml file
         file name convention for cube file:
             1. must end with ".cube".
-            2. must contains either "up" or "down", intepreted as spin channel.
+            2. must contains either "up" or "down" to indicate spin channel.
             3. the LAST integer value found the file name is interpreted as band index.
-        Default is "qe"
+        Default is "qeh5"
 
-    --filename: name for input wavefunction. Currently only works for Qbox wavefunction
+    --filename: name for input wavefunction. Only used for Qbox wavefunction
 
     --fftgrid: "density" or "wave", currently only works for QE wavefunction. If "wave"
         is specified, orbitals will use a reduced grid for FFT. Default is "wave".
@@ -44,6 +45,7 @@ Acceptable kwargs are:
 kwargs = {
     "path": ".",
     "wfcfmt": "qeh5",
+    "prefix": "pwscf",
     "fftgrid": "wave",
     "comm": MPI.COMM_WORLD,
     "memory": "low"
@@ -80,7 +82,8 @@ elif wfcfmt == "vasp":
     wfcloader = VaspWavefunctionLoader()
 elif wfcfmt == "qeh5":
     from ..common.wfc.qeh5loader import QEHDF5WavefunctionLoader
-    wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid, comm=kwargs["comm"])
+    prefix = kwargs.pop("prefix", "pwscf")
+    wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid, prefix=prefix, comm=kwargs["comm"])
 else:
     raise ValueError("Unsupported wfcfmt: {}".format(wfcfmt))
 
