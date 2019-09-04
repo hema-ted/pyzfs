@@ -170,81 +170,41 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
 
         # root -> first column scatter
         if onroot:
-            print("root -> first column scattering")
-            print("root", "psig_arrs_all.shape", psig_arrs_all.shape)
-        for r in range(comm.Get_size()):
-            if rank == r:
-                print("-------------------------")
-                print("rank", r, "psig_arrs_m.shape", psig_arrs_m.shape)
-            comm.barrier()
+            print("QEHDF5WavefunctionLoader: root -> first column scattering")
         if sdm.icol == 0:
             sdm.colcomm.Scatter(sendbuf=psig_arrs_all, recvbuf=psig_arrs_m, root=0)
         comm.barrier()
 
         # first column -> other column bcast
         if onroot:
-            print("first column -> other column bcast")
+            print("QEHDF5WavefunctionLoader: first column -> other column bcast")
         sdm.rowcomm.Bcast(psig_arrs_m, root=0)
         comm.barrier()
 
         # root -> first row scatter
         if onroot:
-            print("root -> first row scattering")
+            print("QEHDF5WavefunctionLoader: root -> first row scattering")
         if sdm.irow == 0:
             sdm.rowcomm.Scatter(sendbuf=psig_arrs_all, recvbuf=psig_arrs_n, root=0)
         comm.barrier()
 
         # first row -> other row bcast
         if onroot:
-            print("first row -> other row bcast")
+            print("QEHDF5WavefunctionLoader: first row -> other row bcast")
         sdm.colcomm.Bcast(psig_arrs_n, root=0)
         comm.barrier()
 
-        r = 3
-
-        if onroot:
-            print("A#################", iorbs)
-        comm.barrier()
-
-        if rank == r:
-            print("row/col:", sdm.irow, sdm.icol)
-            print("mloc", sdm.mloc)
         for iloc in range(sdm.mloc):
             iorb = sdm.ltog(iloc)
-            if rank == r:
-                print(iloc, iorb)
             self.wfc.set_psig_arr(iorb, psig_arrs_m[iloc])
-        comm.barrier()
 
-        if onroot:
-            print("B#################")
-
-        if rank == r:
-            print("nloc", sdm.nloc)
         for iloc in range(sdm.nloc):
             iorb = sdm.ltog(0, iloc)[1]
-            if rank == r:
-                print(iloc, iorb)
             try:
                 self.wfc.set_psig_arr(iorb, psig_arrs_n[iloc])
             except ValueError:
                 pass
         comm.barrier()
-
-        if onroot:
-            print("==============")
-            for iorb in range(self.wfc.norbs):
-                print("orb", iorb, psig_arrs_all[_compute_offset(sdm,iorb)][:2])
-        comm.barrier()
-
-        for r in range(comm.Get_size()):
-            if rank == r:
-                print("-------------------------")
-                print("rank", r)
-                for iorb in iorbs:
-                    print("orb", iorb, self.wfc.iorb_psig_arr_map[iorb][:2])
-            comm.barrier()
-        # raise
 
         if self.memory == "high":
             self.wfc.compute_all_psir()
@@ -258,9 +218,8 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
         else:
             raise ValueError
 
-
-
-    # def load(self, iorbs):
+    # # deprecated loader (rank 0 send wfc to all other ranks):
+    # def load(self, iorbs, sdm=None):
     #     super(QEHDF5WavefunctionLoader, self).load(iorbs)
     #
     #     # define varibles for MPI communications
