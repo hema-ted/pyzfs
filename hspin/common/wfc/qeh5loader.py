@@ -30,10 +30,11 @@ def _compute_offset(sdm, iorb):
 
 class QEHDF5WavefunctionLoader(WavefunctionLoader):
 
-    def __init__(self, fftgrid="density"):
+    def __init__(self, fftgrid="density", prefix="pwscf", comm=MPI.COMM_WORLD):
         self.fftgrid = fftgrid
         self.dft = None
         self.wft = None
+        self.prefix = prefix
         super(QEHDF5WavefunctionLoader, self).__init__()
 
     def scan(self):
@@ -41,7 +42,7 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
 
         self.root = "."
 
-        pwxml = etree.parse("{}/pwscf.xml".format(self.root))
+        pwxml = etree.parse("{}/{}.xml".format(self.root, self.prefix))
         self.prefix = pwxml.find("input/control_variables/prefix").text
 
         # parse cell and FFT grid
