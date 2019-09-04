@@ -106,7 +106,7 @@ class QboxWavefunctionLoader(WavefunctionLoader):
             psir = sb_psir_map[band, spin]
             self.wfc.set_psir(iorb, psir)
 
-    def load(self, iorbs):
+    def load(self, iorbs, sdm=None):
 
         iterxml = etree.iterparse(self.xmlfile, huge_tree=True, events=("start", "end"))
         c = Counter(len(iorbs), percent=0.1,

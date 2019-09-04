@@ -43,8 +43,8 @@ class VaspWavefunctionLoader(WavefunctionLoader):
         self.wfc = Wavefunction(cell=cell, ft=ft, nuorbs=nuorbs, ndorbs=ndorbs,
                                 iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map)
 
-    def load(self, iorbs):
-        super(VaspWavefunctionLoader, self).load(iorbs)
+    def load(self, iorbs, sdm=None):
+        super(VaspWavefunctionLoader, self).load(iorbs, sdm, sdm)
 
         counter = 0
         for iorb in iorbs:

@@ -8,6 +8,7 @@ from .io import indent
 mpirank = MPI.COMM_WORLD.Get_rank()
 mpiroot = mpirank == 0
 
+
 class ProcessorGrid(object):
     """2D Grid of processors used to wrap MPI communications."""
     def __init__(self, comm, square=False):
@@ -241,6 +242,8 @@ class SymmetricDistributedMatrix(DistributedMatrix):
         self.mlocx = self.colcomm.allreduce(self.mloc, op=MPI.MAX)
         self.nlocx = self.rowcomm.allreduce(self.nloc, op=MPI.MAX)
         assert self.mlocx == self.nlocx
+        self.mx = self.mlocx * self.nrow
+        assert self.mx == self.colcomm.allreduce(self.mlocx, op=MPI.SUM)
         if self.is_active and (self.mloc < self.mlocx or self.nloc < self.nlocx):
             # self.pgrid.report("expanded array from {}x{} to {}x{}".format(
             #     self.mloc, self.nloc, self.mlocx, self.nlocx

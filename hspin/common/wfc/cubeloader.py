@@ -58,7 +58,7 @@ class CubeWavefunctionLoader(WavefunctionLoader):
 
         self.info()
 
-    def load(self, iorbs):
+    def load(self, iorbs, sdm=None):
         """Overload WavefunctionHandler.load() due to ASE MPI problem."""
         from ase.io.cube import read_cube_data
 

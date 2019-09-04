@@ -80,7 +80,7 @@ elif wfcfmt == "vasp":
     wfcloader = VaspWavefunctionLoader()
 elif wfcfmt == "qeh5":
     from ..common.wfc.qeh5loader import QEHDF5WavefunctionLoader
-    wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid, comm=kwargs["comm"])
+    wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid)
 else:
     raise ValueError("Unsupported wfcfmt: {}".format(wfcfmt))
 

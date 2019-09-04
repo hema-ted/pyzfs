@@ -1,5 +1,6 @@
 import numpy as np
 from ..ft import fftshift, ifftshift, irfftn
+from mpi4py import MPI
 
 
 class Wavefunction:
@@ -106,7 +107,9 @@ class Wavefunction:
         if iorb in self.iorb_psir_map:
             return self.iorb_psir_map[iorb]
         else:
-            assert iorb in self.iorb_psig_arr_map, "Impossible to get psir: orbital is not loaded"
+            rank = MPI.COMM_WORLD.Get_rank()
+            s = "{} Impossible to get psir: orbital {} is not loaded".format(rank, iorb)
+            assert iorb in self.iorb_psig_arr_map, s
             return self.compute_psir_from_psig_arr(self.iorb_psig_arr_map[iorb])
 
     def get_rhog(self, iorb):

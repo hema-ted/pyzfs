@@ -10,17 +10,30 @@ from ..cell import Cell
 from ..ft import FourierTransform, fftshift, ifftshift, irfftn, ifftn
 from .wavefunction import Wavefunction
 from ..counter import Counter
+from ..parallel import SymmetricDistributedMatrix
 
 from ...common.external import empty_ase_cell
 
 
+def _compute_offset(sdm, iorb):
+    """compute the index for iorb^th wfc, note that some rows in psig_arrs_all
+    are zero to facilitate MPI scatter"""
+    nproc = iloc = 0
+    for iproc in range(sdm.pgrid.nrow):
+        mstart, mloc, mend, nstart, nloc, nend = sdm.indexmap[iproc, 0]
+        if mstart > iorb:
+            break
+        nproc = iproc
+        iloc = iorb - mstart
+    return nproc * sdm.mlocx + iloc
+
+
 class QEHDF5WavefunctionLoader(WavefunctionLoader):
 
-    def __init__(self, fftgrid="density", comm=MPI.COMM_WORLD):
+    def __init__(self, fftgrid="density"):
         self.fftgrid = fftgrid
         self.dft = None
         self.wft = None
-        self.comm = comm
         super(QEHDF5WavefunctionLoader, self).__init__()
 
     def scan(self):
@@ -101,77 +114,136 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
                                 iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map,
                                 dft=self.dft, gamma=self.gamma, gvecs=None)
 
-    def load(self, iorbs):
-        super(QEHDF5WavefunctionLoader, self).load(iorbs)
+    def load(self, iorbs, sdm):
+        super(QEHDF5WavefunctionLoader, self).load(iorbs, sdm)
+        assert isinstance(sdm, SymmetricDistributedMatrix)
+        comm = sdm.comm
+        rank = sdm.pgrid.rank
+        onroot = sdm.onroot
 
-        # define varibles for MPI communications
-        comm = self.comm
-        rank = comm.Get_rank()
-        size = comm.Get_size()
-        onroot = rank == 0
-
-        iorbs_of_rank = None
+        # parse G vectors
+        gvecs = ngvecs = None
         if onroot:
-            iorbs_of_rank = {0: iorbs}
-            for r in range(1, size):
-                iorbs_of_rank[r] = comm.recv(source=r)
-        else:
-            comm.send(iorbs, dest=0)
-
-        comm.barrier()
-
-        # processor 0 parse wavefunctions
-        gvecs = ngvecs = psig_arrs_all = None
-        if onroot:
-            iorbs_all = set.union(*iorbs_of_rank.values())
-            psig_arrs_all = {}
-
-            # read wavefunctions
-            c = Counter(len(iorbs_all), percent=0.1,
-                        message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
-            for ispin in range(2):
-                wfcfile = "wfcup1.hdf5" if ispin == 0 else "wfcdw1.hdf5"
-                wfch5 = h5py.File(os.path.join(
-                    self.root, "{}.save".format(self.prefix), wfcfile))
-
-                gvecs = np.array(wfch5["MillerIndices"], dtype=int)
-                ngvecs = gvecs.shape[0]
-                assert gvecs.shape == (ngvecs, 3)
-
-                evc = np.array(wfch5["evc"])
-
-                for ievc in range(evc.shape[0]):
-                    band = ievc + 1
-                    iorb = self.wfc.sb_iorb_map.get(("up" if ispin == 0 else "down", band))
-
-                    if iorb in iorbs_all:
-                        psig_arrs_all[iorb] = evc[ievc].view(complex).copy()
-                        c.count()
+            wfcfile = "wfcup1.hdf5"
+            wfch5 = h5py.File(os.path.join(
+                self.root, "{}.save".format(self.prefix), wfcfile))
+            gvecs = np.array(wfch5["MillerIndices"], dtype=int)
+            ngvecs = gvecs.shape[0]
+            assert gvecs.shape == (ngvecs, 3)
 
         # broadcast G vectors
-        ngvecs = comm.bcast(ngvecs, root=0)
+        ngvecs = sdm.comm.bcast(ngvecs, root=0)
         if onroot:
             self.wfc.gvecs = gvecs
         if not onroot:
             self.wfc.gvecs = np.zeros([ngvecs, 3], dtype=int)
         comm.Bcast(self.wfc.gvecs, root=0)
 
+        # processor 0 parse wavefunctions
+        psig_arrs_all = None
+        if onroot:
+            psig_arrs_all = np.zeros([sdm.mx, ngvecs], dtype=complex)
+            c = Counter(self.wfc.norbs , percent=0.1,
+                        message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
+            for ispin in range(2):
+                wfcfile = "wfcup1.hdf5" if ispin == 0 else "wfcdw1.hdf5"
+                wfch5 = h5py.File(os.path.join(
+                    self.root, "{}.save".format(self.prefix), wfcfile))
+                gvecs = np.array(wfch5["MillerIndices"], dtype=int)
+                ngvecs = gvecs.shape[0]
+                assert gvecs.shape == (ngvecs, 3)
+                evc = np.array(wfch5["evc"])
+                for ievc in range(evc.shape[0]):
+                    band = ievc + 1
+                    iorb = self.wfc.sb_iorb_map.get(("up" if ispin == 0 else "down", band))
+                    if iorb is not None:
+                        offset = _compute_offset(sdm, iorb)
+                        psig_arrs_all[offset] = evc[ievc].view(complex)
+                        c.count()
+
         # scatter wavefunctions
-        if rank == 0:
-            psig_arrs = {iorb: psig_arrs_all[iorb] for iorb in iorbs}
-            for r in range(1, size):
-                for iorb in iorbs_of_rank[r]:
-                    comm.Send(psig_arrs_all[iorb], dest=r, tag=iorb)
-
-        else:
-            psig_arrs = {iorb: np.zeros(ngvecs, complex) for iorb in iorbs}
-            for iorb in iorbs:
-                comm.Recv(psig_arrs[iorb], source=0, tag=iorb)
-
+        # allocate wfc arrays
+        psig_arrs_m = np.zeros([sdm.mlocx, ngvecs], dtype=complex)
+        psig_arrs_n = np.zeros([sdm.nlocx, ngvecs], dtype=complex)
         comm.barrier()
 
-        for iorb in iorbs:
-            self.wfc.set_psig_arr(iorb, psig_arrs[iorb])
+        # root -> first column scatter
+        if onroot:
+            print("root -> first column scattering")
+            print("root", "psig_arrs_all.shape", psig_arrs_all.shape)
+        for r in range(comm.Get_size()):
+            if rank == r:
+                print("-------------------------")
+                print("rank", r, "psig_arrs_m.shape", psig_arrs_m.shape)
+            comm.barrier()
+        if sdm.icol == 0:
+            sdm.colcomm.Scatter(sendbuf=psig_arrs_all, recvbuf=psig_arrs_m, root=0)
+        comm.barrier()
+
+        # first column -> other column bcast
+        if onroot:
+            print("first column -> other column bcast")
+        sdm.rowcomm.Bcast(psig_arrs_m, root=0)
+        comm.barrier()
+
+        # root -> first row scatter
+        if onroot:
+            print("root -> first row scattering")
+        if sdm.irow == 0:
+            sdm.rowcomm.Scatter(sendbuf=psig_arrs_all, recvbuf=psig_arrs_n, root=0)
+        comm.barrier()
+
+        # first row -> other row bcast
+        if onroot:
+            print("first row -> other row bcast")
+        sdm.colcomm.Bcast(psig_arrs_n, root=0)
+        comm.barrier()
+
+        r = 3
+
+        if onroot:
+            print("A#################", iorbs)
+        comm.barrier()
+
+        if rank == r:
+            print("row/col:", sdm.irow, sdm.icol)
+            print("mloc", sdm.mloc)
+        for iloc in range(sdm.mloc):
+            iorb = sdm.ltog(iloc)
+            if rank == r:
+                print(iloc, iorb)
+            self.wfc.set_psig_arr(iorb, psig_arrs_m[iloc])
+        comm.barrier()
+
+        if onroot:
+            print("B#################")
+
+        if rank == r:
+            print("nloc", sdm.nloc)
+        for iloc in range(sdm.nloc):
+            iorb = sdm.ltog(0, iloc)[1]
+            if rank == r:
+                print(iloc, iorb)
+            try:
+                self.wfc.set_psig_arr(iorb, psig_arrs_n[iloc])
+            except ValueError:
+                pass
+        comm.barrier()
+
+        if onroot:
+            print("==============")
+            for iorb in range(self.wfc.norbs):
+                print("orb", iorb, psig_arrs_all[_compute_offset(sdm,iorb)][:2])
+        comm.barrier()
+
+        for r in range(comm.Get_size()):
+            if rank == r:
+                print("-------------------------")
+                print("rank", r)
+                for iorb in iorbs:
+                    print("orb", iorb, self.wfc.iorb_psig_arr_map[iorb][:2])
+            comm.barrier()
+        # raise
 
         if self.memory == "high":
             self.wfc.compute_all_psir()
@@ -184,4 +256,90 @@ class QEHDF5WavefunctionLoader(WavefunctionLoader):
             pass
         else:
             raise ValueError
+
+
+
+    # def load(self, iorbs):
+    #     super(QEHDF5WavefunctionLoader, self).load(iorbs)
+    #
+    #     # define varibles for MPI communications
+    #     comm = self.comm
+    #     rank = comm.Get_rank()
+    #     size = comm.Get_size()
+    #     onroot = rank == 0
+    #
+    #     iorbs_of_rank = None
+    #     if onroot:
+    #         iorbs_of_rank = {0: iorbs}
+    #         for r in range(1, size):
+    #             iorbs_of_rank[r] = comm.recv(source=r)
+    #     else:
+    #         comm.send(iorbs, dest=0)
+    #
+    #     comm.barrier()
+    #
+    #     # processor 0 parse wavefunctions
+    #     gvecs = ngvecs = psig_arrs_all = None
+    #     if onroot:
+    #         iorbs_all = set.union(*iorbs_of_rank.values())
+    #         psig_arrs_all = {}
+    #
+    #         # read wavefunctions
+    #         c = Counter(len(iorbs_all), percent=0.1,
+    #                     message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
+    #         for ispin in range(2):
+    #             wfcfile = "wfcup1.hdf5" if ispin == 0 else "wfcdw1.hdf5"
+    #             wfch5 = h5py.File(os.path.join(
+    #                 self.root, "{}.save".format(self.prefix), wfcfile))
+    #
+    #             gvecs = np.array(wfch5["MillerIndices"], dtype=int)
+    #             ngvecs = gvecs.shape[0]
+    #             assert gvecs.shape == (ngvecs, 3)
+    #
+    #             evc = np.array(wfch5["evc"])
+    #
+    #             for ievc in range(evc.shape[0]):
+    #                 band = ievc + 1
+    #                 iorb = self.wfc.sb_iorb_map.get(("up" if ispin == 0 else "down", band))
+    #
+    #                 if iorb in iorbs_all:
+    #                     psig_arrs_all[iorb] = evc[ievc].view(complex).copy()
+    #                     c.count()
+    #
+    #     # broadcast G vectors
+    #     ngvecs = comm.bcast(ngvecs, root=0)
+    #     if onroot:
+    #         self.wfc.gvecs = gvecs
+    #     if not onroot:
+    #         self.wfc.gvecs = np.zeros([ngvecs, 3], dtype=int)
+    #     comm.Bcast(self.wfc.gvecs, root=0)
+    #
+    #     # scatter wavefunctions
+    #     if rank == 0:
+    #         psig_arrs = {iorb: psig_arrs_all[iorb] for iorb in iorbs}
+    #         for r in range(1, size):
+    #             for iorb in iorbs_of_rank[r]:
+    #                 comm.Send(psig_arrs_all[iorb], dest=r, tag=iorb)
+    #
+    #     else:
+    #         psig_arrs = {iorb: np.zeros(ngvecs, complex) for iorb in iorbs}
+    #         for iorb in iorbs:
+    #             comm.Recv(psig_arrs[iorb], source=0, tag=iorb)
+    #
+    #     comm.barrier()
+    #
+    #     for iorb in iorbs:
+    #         self.wfc.set_psig_arr(iorb, psig_arrs[iorb])
+    #
+    #     if self.memory == "high":
+    #         self.wfc.compute_all_psir()
+    #         self.wfc.clear_all_psig_arr()
+    #         self.wfc.compute_all_rhog()
+    #     elif self.memory == "low":
+    #         self.wfc.compute_all_psir()
+    #         self.wfc.clear_all_psig_arr()
+    #     elif self.memory == "critical":
+    #         pass
+    #     else:
+    #         raise ValueError
 

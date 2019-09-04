@@ -79,9 +79,9 @@ class QEWavefunctionLoader(WavefunctionLoader):
                                 iorb_sb_map=iorb_sb_map, iorb_fname_map=iorb_fname_map,
                                 dft=self.dft, gamma=self.gamma, gvecs=self.gvecs)
 
-    def load(self, iorbs):
+    def load(self, iorbs, sdm=None):
         # TODO: first column and row read, then bcast to all processors
-        super(QEWavefunctionLoader, self).load(iorbs)
+        super(QEWavefunctionLoader, self).load(iorbs, sdm)
 
         c = Counter(len(iorbs), percent=0.1,
                     message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")

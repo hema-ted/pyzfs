@@ -25,7 +25,7 @@ class WavefunctionLoader(object):
             ))
 
     @abstractmethod
-    def load(self, iorbs):
+    def load(self, iorbs, sdm):
         """Load read space KS orbitals to memory, store in wfc.iorb_psir_map."""
         if mpiroot:
             print("\n{}: loading orbitals into memory... (memory mode: \"{}\")\n".format(

@@ -104,7 +104,7 @@ class ZFSCalculation:
             list(range(self.I.mstart, self.I.mend))
             + list(range(self.I.nstart, self.I.nend))
         )
-        self.wfcloader.load(iorbs=iorbs)
+        self.wfcloader.load(iorbs=iorbs, sdm=self.I)
         del self.wfcloader
         self.pgrid.comm.barrier()
         self.print_memory_usage()
