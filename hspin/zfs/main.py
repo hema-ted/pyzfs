@@ -43,7 +43,7 @@ class ZFSCalculation:
     """
 
     @indent(2)
-    def __init__(self, wfcloader, memory="low", comm=MPI.COMM_WORLD):
+    def __init__(self, wfcloader, memory="low", comm=MPI.COMM_WORLD, **kwargs):
         """Initialize ZFS calculation.
 
         Args:
