@@ -34,6 +34,9 @@ Summary
 
 $$ D_{ab} = \frac{1}{2} \frac{1}{S(2S-1)} \frac{\mu_0}{4\pi} (\gamma_\text{e} \hbar)^2 \ \sum_{i \le j}^{\text{occ.}} \chi_{ij} \langle \Psi_{ij}| \  \frac{ r^2\delta_{ab} - 3r_a r_b }{ r^5 } \  |\Psi_{ij} \rangle $$
 
+$$ I_{ab} = 4\pi \Omega \sum_{\mathbf{G} \neq 0} { \rho(\mathbf{G}, -\mathbf{G}) \left( \frac{G_a G_b}{G^2} - \frac{\delta_{ab}}{3} \right)
+ } $$
+
 
 # Citations
 
