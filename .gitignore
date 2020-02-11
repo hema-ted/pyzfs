@@ -2,5 +2,6 @@
 /dist/
 /*.egg-info
 .idea
+paper.pdf
 _build
 

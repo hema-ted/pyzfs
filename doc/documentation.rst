@@ -1,7 +1,7 @@
 .. _documentation:
 
-Manual
-======
+Code documentation
+==================
 
 **hspin** detailed documentation.
 
