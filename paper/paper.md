@@ -1,5 +1,5 @@
 ---
-title: 'hspin: A Python package for first-principles calculation of zero-field splitting tensors'
+title: 'hspin: A Python package for first-principles calculations of zero-field splitting tensors'
 tags:
   - materials science
   - electron spin

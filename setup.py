@@ -3,12 +3,13 @@ from setuptools import setup
 setup(
     name = "hspin",
     version = "0.0.0",
-    author = "He Ma",
-    author_email = "mahe@uchicago.edu",
-    description = "",
+    author = "He Ma, Marco Govoni",
+    author_email = "mahe@uchicago.edu, mgovoni@anl.gov",
+    description = "A python code to compute zero-field splitting tensor",
     packages=["hspin"],
     classifiers=[],
     install_requires=[
-        'scipy', 'mpi4py', 'ase'
+        'numpy', 'scipy', 'mpi4py', 'ase', 'lxml',
     ]
 )
+
