@@ -1,5 +1,5 @@
 ---
-title: 'hspin: A Python package for first-principles calculation of zero field splitting tensor'
+title: 'hspin: A Python package for first-principles calculations of zero field splitting tensors'
 tags:
   - materials science
   - electron spin
@@ -11,8 +11,8 @@ authors:
     orcid: 1
     affiliation: "1, 2"
   - name: Marco Govoni
-    orcid: 1
-    affiliation: 3
+    orcid: 0000-0001-6303-2403
+    affiliation: "3, 2"
   - name: Giulia Galli
     orcid: 1
     affiliation: "1, 2, 3"
@@ -21,7 +21,7 @@ affiliations:
    index: 1
  - name: Pritzker School of Molecular Engineering, University of Chicago, Chicago, IL 60637, USA
    index: 2
- - name: aterials Science Division and Center for Molecular Engineering, Argonne National Laboratory, Lemont, IL 60439, USA
+ - name: Materials Science Division and Center for Molecular Engineering, Argonne National Laboratory, Lemont, IL 60439, USA
    index: 3
 date: 06 February 2020
 bibliography: paper.bib
