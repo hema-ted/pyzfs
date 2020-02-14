@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if mpiroot:
         version = pkg_resources.require("PyZFS")[0].version
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("PyZFS version {}".format(version))
+        print("PyZFS {}".format(version))
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
     # Default arguments

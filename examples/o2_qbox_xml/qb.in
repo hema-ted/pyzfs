@@ -1,0 +1,20 @@
+set cell 9.448712 0.000000 0.000000 0.000000 9.448712 0.000000 0.000000 0.000000 9.448712
+
+species O O_ONCV_PBE-1.0.xml
+
+atom O1 O  0.00000000  0.00000000  0.00000000
+atom O2 O  0.00000000  0.00000000  2.28657330
+
+set xc PBE
+set ecut 20
+set nspin 2
+set delta_spin 1
+set wf_dyn JD
+set scf_tol 1.0E-8
+
+randomize_wf
+
+run 0 100 10
+
+save o2.xml
+

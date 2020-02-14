@@ -1,0 +1,17 @@
+<root>
+  <code>hpsi</code>
+  <version>0.0.0</version>
+  <git_summary>commit 7bd4f8b42f44f389dc0326bc7befb7b4682c9af2
+Author: mahe &lt;ted.mahe@gmail.com&gt;
+Date:   Thu Feb 13 21:46:22 2020 -0600
+
+    change the package name to pyzfs, which is more closely aligned with the functionality of the package
+
+</git_summary>
+  <object>ZFSCalculation</object>
+  <DTensor unit="MHz">[[-8.12869310e+03 -1.13306988e-02 -9.48395705e-02]
+ [-1.13306988e-02 -8.12864879e+03  6.11415742e-02]
+ [-9.48395705e-02  6.11415742e-02  1.62573419e+04]]</DTensor>
+  <D unit="MHz">24386.01</D>
+  <E unit="MHz">-0.02</E>
+</root>

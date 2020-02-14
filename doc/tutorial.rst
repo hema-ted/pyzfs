@@ -44,4 +44,13 @@ Acceptable flags [`--flags`] are listed below, for detailed explanation see `pyz
 
 - `memory`: "high", "low" or "critical". See ZFSCalculation documentation. Default is "critical".
 
+Some example execution commands with flags:
+
+.. code:: bash
+
+mpiexec python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
+
+.. code:: bash
+
+mpiexec python -m pyzfs.exec.runzfs --wfcfmt qbox --filename gs.xml
 

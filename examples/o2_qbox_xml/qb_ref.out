@@ -1,0 +1,619 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fpmd:simulation xmlns:fpmd="http://www.quantum-simulation.org/ns/fpmd/fpmd-1.0">
+<uuid> c03ced12-4f72-11ea-9a73-d89ef3053ef4 </uuid>
+
+                   ============================
+                   I qbox 1.67.4              I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I                          I
+                   I http://qboxcode.org      I
+                   ============================
+
+
+<release> 1.67.4 local  </release>
+<user> mahe </user>
+<sysname> Linux </sysname>
+<nodename> mahe-Precision-Tower-5810 </nodename>
+<start_time> 2020-02-14T21:41:25Z </start_time>
+<mpi_processes count="1">
+<process id="0"> mahe-Precision-Tower-5810 </process>
+</mpi_processes>
+[qbox] <cmd>set cell 9.448712 0.000000 0.000000 0.000000 9.448712 0.000000 0.000000 0.000000 9.448712</cmd>
+<unit_cell 
+    a="9.44871200   0.00000000   0.00000000  "
+    b="0.00000000   9.44871200   0.00000000  "
+    c="0.00000000   0.00000000   9.44871200  " />
+[qbox] <cmd></cmd>
+[qbox] <cmd>species O O_ONCV_PBE-1.0.xml</cmd>
+  SpeciesCmd: defining species O as O_ONCV_PBE-1.0.xml
+
+Warning at file , line 0, char 0
+  Message: unable to open primary document entity '/home/mahe/Midway/scratch/code-test/hspin/examples/o2-qbox/species.xsd'
+
+ species O:
+<species name="O">
+ <description>
+
+
+ This pseudopotential file has been produced using the code
+ ONCVPSP  (Optimized Norm-Conservinng Vanderbilt PSeudopotential)
+ scalar-relativistic version 2.1.1, 03/26/2014 by D. R. Hamann
+ The code is available through a link at URL www.mat-simresearch.com.
+ Documentation with the package provides a full discription of the
+ input data below.
+
+
+ While it is not required under the terms of the GNU GPL, it is
+ suggested that you cite D. R. Hamann, Phys. Rev. B 88, 085117 (2013)
+ in any publication using these pseudopotentials.
+
+
+ Copyright 2015 The Regents of the University of California
+ 
+ This work is licensed under the Creative Commons Attribution-ShareAlike 
+ 4.0 International License. To view a copy of this license, visit 
+ http://creativecommons.org/licenses/by-sa/4.0/ or send a letter to 
+ Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+ 
+ This pseudopotential is part of the Schlipf-Gygi norm-conserving 
+ pseudopotential library. Its construction parameters were tuned to 
+ reproduce materials of a training set with very high accuracy and 
+ should be suitable as a general purpose pseudopotential to treat a 
+ variety of different compounds. For details of the construction and 
+ testing of the pseudopotential please refer to:
+ 
+ M. Schlipf, F. Gygi, Comp. Phys. Comm. 196, 36 (2015)
+ http://dx.doi.org/10.1016/j.cpc.2015.05.011
+ 
+ We kindly ask that you include this reference in all publications 
+ associated to this pseudopotential.
+
+
+Input file for PP generation:
+
+# ATOM AND REFERENCE CONFIGURATION
+# atsym  z    nc    nv    iexc   psfile
+  O  8.00     1     2     4      fpmd
+#
+#   n    l    f        energy (Ha)
+    1    0    2.00
+    2    0    2.00
+    2    1    4.00
+#
+# PSEUDOPOTENTIAL AND OPTIMIZATION
+# lmax
+    1
+#
+#   l,   rc,     ep,   ncon, nbas, qcut
+    0   1.29195  -0.88057    5    8   8.98916
+    1   1.47310  -0.33187    5    8   9.14990
+#
+# LOCAL POTENTIAL
+# lloc, lpopt,  rc(5),   dvloc0
+    4    5   0.90330      0.00000
+#
+# VANDERBILT-KLEINMAN-BYLANDER PROJECTORs
+# l, nproj, debl
+    0    2   1.51851
+    1    2   1.53631
+#
+# MODEL CORE CHARGE
+# icmod, fcfact
+    0   0.00000
+#
+# LOG DERIVATIVE ANALYSIS
+# epsh1, epsh2, depsh
+   -5.00    3.00    0.02
+#
+# OUTPUT GRID
+# rlmax, drl
+    6.00    0.01
+#
+# TEST CONFIGURATIONS
+# ncnf
+    0
+# nvcnf
+#   n    l    f
+ </description>
+ <symbol>O</symbol>
+ <atomic_number>8</atomic_number>
+ <mass>15.99899960</mass>
+ <norm_conserving_semilocal_pseudopotential>
+ <valence_charge>6</valence_charge>
+ <mesh_spacing>0.01000000</mesh_spacing>
+ </norm_conserving_semilocal_pseudopotential>
+</species>
+ SLPP semilocal potential
+ rcps_ =   1.50000000
+[qbox] <cmd></cmd>
+[qbox] <cmd>atom O1 O  0.00000000  0.00000000  0.00000000</cmd>
+[qbox] <cmd>atom O2 O  0.00000000  0.00000000  2.28657330</cmd>
+[qbox] <cmd></cmd>
+[qbox] <cmd>set xc PBE</cmd>
+[qbox] <cmd>set ecut 20</cmd>
+[qbox] <cmd>set nspin 2</cmd>
+[qbox] <cmd>set delta_spin 1</cmd>
+[qbox] <cmd>set wf_dyn JD</cmd>
+[qbox] <cmd>set scf_tol 1.0E-8</cmd>
+[qbox] <cmd></cmd>
+[qbox] <cmd>randomize_wf</cmd>
+[qbox] <cmd></cmd>
+[qbox] <cmd>run 0 100 10</cmd>
+ EnergyFunctional: <np0v> 30 </np0v>  <np1v> 30 </np1v>  <np2v> 30 </np2v>
+ EnergyFunctional: vft->np012(): 27000
+<wavefunction ecut="10.00000000" nspin="2" nel="12" nempty="0">
+<cell a="9.448712 0.000000 0.000000"
+      b="0.000000 9.448712 0.000000"
+      c="0.000000 0.000000 9.448712"/>
+ reciprocal lattice vectors
+ 0.664978 0.000000 0.000000
+ 0.000000 0.664978 0.000000
+ 0.000000 0.000000 0.664978
+<refcell a="0.000000 0.000000 0.000000"
+         b="0.000000 0.000000 0.000000"
+         c="0.000000 0.000000 0.000000"/>
+<grid nx="16" ny="16" nz="16"/>
+ kpoint: 0.000000 0.000000 0.000000 weight: 1.000000
+<slater_determinant kpoint="0.000000 0.000000 0.000000" size="7">
+ sdcontext: 1x1
+ basis size: 655
+ c dimensions: 655x7   (655x7 blocks)
+ <density_matrix form="diagonal" size="7">
+ </density_matrix>
+</slater_determinant>
+ kpoint: 0.000000 0.000000 0.000000 weight: 1.000000
+<slater_determinant kpoint="0.000000 0.000000 0.000000" size="5">
+ sdcontext: 1x1
+ basis size: 655
+ c dimensions: 655x5   (655x5 blocks)
+ <density_matrix form="diagonal" size="5">
+ </density_matrix>
+</slater_determinant>
+</wavefunction>
+<net_charge> 0 </net_charge>
+<iteration count="1">
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+  <eigenvalue_sum>  5.73760765 </eigenvalue_sum>
+  <eigenvalue_sum>  -12.97209422 </eigenvalue_sum>
+  <eigenvalue_sum>  -25.06716066 </eigenvalue_sum>
+  <eigenvalue_sum>  -32.16970420 </eigenvalue_sum>
+  <eigenvalue_sum>  -36.71033492 </eigenvalue_sum>
+  <eigenvalue_sum>  -39.75329839 </eigenvalue_sum>
+  <eigenvalue_sum>  -41.50183191 </eigenvalue_sum>
+  <eigenvalue_sum>  -42.57470038 </eigenvalue_sum>
+  <eigenvalue_sum>  -43.24076677 </eigenvalue_sum>
+  <eigenvalue_sum>  -43.58512708 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+  -133.79864  -107.07682   -94.27094   -93.73299   -89.29308
+   -80.35452   -78.24370
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+  -133.72176  -106.72341   -94.14018   -92.34191   -86.44968
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -47.60171043 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+  <eigenvalue_sum>  -28.71014241 </eigenvalue_sum>
+  <eigenvalue_sum>  -29.06876120 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -92.51870   -73.82841   -61.47189   -61.05945   -60.29586
+   -52.15694   -51.87000
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -91.46408   -71.93790   -59.68905   -59.22832   -57.09262
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -36.81836166 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.95408962 
+  <eigenvalue_sum>  -9.70023053 </eigenvalue_sum>
+  <eigenvalue_sum>  -10.99114876 </eigenvalue_sum>
+  <eigenvalue_sum>  -11.23788926 </eigenvalue_sum>
+  <eigenvalue_sum>  -11.33603832 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -46.25596   -32.99006   -24.75423   -24.14705   -21.78957
+   -11.73895   -11.23339
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -43.93048   -31.76300   -21.10982   -21.08400   -19.20909
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.87217854 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = 0.89196221 -0.44697862 
+  <eigenvalue_sum>  -10.59834528 </eigenvalue_sum>
+  <eigenvalue_sum>  -10.62857802 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -43.38792   -31.73873   -21.27223   -20.78568   -20.47745
+   -11.68900   -11.28478
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -41.73860   -30.18839   -19.66778   -18.82685   -18.38712
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.46374645 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.74869098 -0.05094145 0.06300793 
+  <eigenvalue_sum>  -10.01655358 </eigenvalue_sum>
+  <eigenvalue_sum>  -10.13569623 </eigenvalue_sum>
+  <eigenvalue_sum>  -10.16620942 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -43.00264   -30.33613   -19.52469   -19.35385   -19.16932
+   -11.03515   -10.85496
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -41.81834   -28.61518   -18.29339   -17.54257   -17.39748
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.23834274 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = 0.58349459 -0.47188930 -0.08758455 
+  <eigenvalue_sum>  -8.23881747 </eigenvalue_sum>
+  <eigenvalue_sum>  -8.25555356 </eigenvalue_sum>
+  <eigenvalue_sum>  -8.25938719 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -38.34156   -25.81183   -15.13160   -15.07859   -14.81185
+    -6.86788    -6.82450
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -37.15446   -24.08382   -13.98943   -13.37824   -13.32031
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.11101934 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.64577632 0.58923608 -0.30413999 
+  <eigenvalue_sum>  -7.81518197 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.82095166 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.23439   -24.88555   -13.94178   -13.93332   -13.91181
+    -6.05016    -6.04604
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.08794   -23.13916   -13.09566   -12.27072   -12.25591
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.08444581 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.95853566 0.23734267 -0.05951397 
+  <eigenvalue_sum>  -7.88019705 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.88415437 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.48363   -25.07065   -14.06855   -14.02180   -14.01575
+    -6.13758    -6.13441
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.36060   -23.34440   -13.24765   -12.35115   -12.34203
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.09509422 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.76585574 0.44255915 -0.08708140 
+  <eigenvalue_sum>  -7.90063034 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.90103632 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.50655   -25.11020   -14.11630   -14.03332   -14.02977
+    -6.18029    -6.17762
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.39437   -23.38599   -13.30271   -12.38451   -12.38155
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10027785 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.93386558 0.08138930 -0.00336751 
+  <eigenvalue_sum>  -7.91348519 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91376209 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52721   -25.14013   -14.15481   -14.05410   -14.05268
+    -6.20982    -6.20815
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42204   -23.41876   -13.33413   -12.41317   -12.41272
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10269333 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.60864568 0.53674850 -0.11876162 
+  <eigenvalue_sum>  -7.91030976 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91036450 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52090   -25.13389   -14.14811   -14.04344   -14.04259
+    -6.20007    -6.19933
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.41701   -23.41423   -13.32724   -12.40402   -12.40330
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10281362 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.01015715 -0.79629166 0.31849334 
+  <eigenvalue_sum>  -7.90893404 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.90896257 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.51383   -25.12777   -14.14479   -14.04158   -14.04128
+    -6.19705    -6.19678
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.41160   -23.40942   -13.32346   -12.40433   -12.40399
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10315227 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.65518242 0.60403565 -0.10143388 
+  <eigenvalue_sum>  -7.91290522 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91292829 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52276   -25.13604   -14.15329   -14.05040   -14.05030
+    -6.20662    -6.20653
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42097   -23.41730   -13.33189   -12.41385   -12.41362
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10313365 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = 0.11649680 -0.15761888 0.03568977 
+  <eigenvalue_sum>  -7.91339198 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91339392 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52419   -25.13695   -14.15416   -14.05129   -14.05120
+    -6.20740    -6.20730
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42266   -23.41834   -13.33284   -12.41496   -12.41486
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314441 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.93629307 0.22106809 0.02834953 
+  <eigenvalue_sum>  -7.91261262 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91261402 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52263   -25.13529   -14.15244   -14.04927   -14.04921
+    -6.20547    -6.20541
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42117   -23.41675   -13.33120   -12.41304   -12.41301
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314766 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.88687337 0.32828435 -0.29126711 
+  <eigenvalue_sum>  -7.91316176 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91316194 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52394   -25.13657   -14.15363   -14.05037   -14.05037
+    -6.20661    -6.20661
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42261   -23.41803   -13.33248   -12.41430   -12.41426
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314790 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.32730254 -0.06156517 0.13855494 
+  <eigenvalue_sum>  -7.91320730 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91320742 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52397   -25.13671   -14.15376   -14.05049   -14.05048
+    -6.20676    -6.20675
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42261   -23.41814   -13.33260   -12.41439   -12.41437
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314877 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.30100778 0.31606822 -0.14775990 
+  <eigenvalue_sum>  -7.91302136 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91302141 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52353   -25.13630   -14.15337   -14.05006   -14.05006
+    -6.20634    -6.20634
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42216   -23.41774   -13.33220   -12.41395   -12.41394
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314901 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.05087188 -0.18133340 -0.07133628 
+  <eigenvalue_sum>  -7.91305126 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91305127 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52359   -25.13637   -14.15344   -14.05012   -14.05012
+    -6.20641    -6.20640
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42222   -23.41781   -13.33227   -12.41402   -12.41402
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314908 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = -0.53387458 0.17339131 -0.02798791 
+  <eigenvalue_sum>  -7.91310057 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91310058 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52371   -25.13648   -14.15354   -14.05024   -14.05024
+    -6.20652    -6.20651
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42234   -23.41792   -13.33237   -12.41413   -12.41413
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314909 </etotal_int>
+  BOSampleStepper: end scf iteration
+  BOSampleStepper: start scf iteration
+  <electronic_charge ispin="0"> 7.00000000 </electronic_charge>
+  <electronic_charge ispin="1"> 5.00000000 </electronic_charge>
+ AndersonMixer: theta = 0.22234039 -0.12483504 -0.01670560 
+  <eigenvalue_sum>  -7.91310212 </eigenvalue_sum>
+  <eigenvalue_sum>  -7.91310212 </eigenvalue_sum>
+<eigenset>
+  <eigenvalues spin="0" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="7">
+   -37.52372   -25.13648   -14.15355   -14.05024   -14.05024
+    -6.20652    -6.20652
+  </eigenvalues>
+  <eigenvalues spin="1" kpoint="0.00000000 0.00000000 0.00000000" weight="1.00000000" n="5">
+   -36.42235   -23.41792   -13.33237   -12.41414   -12.41414
+  </eigenvalues>
+</eigenset>
+  <etotal_int>     -30.10314909 </etotal_int>
+  BOSampleStepper: end scf iteration
+  <ekin>        17.03829357 </ekin>
+  <econf>        0.00000000 </econf>
+  <eps>        -26.38807586 </eps>
+  <enl>          1.35285080 </enl>
+  <ecoul>      -15.67102181 </ecoul>
+  <exc>         -6.43519579 </exc>
+  <esr>          2.00601407 </esr>
+  <eself>       19.14922946 </eself>
+  <ets>          0.00000000 </ets>
+  <eexf>         0.00000000 </eexf>
+  <etotal>     -30.10314909 </etotal>
+  <epv>          0.00000000 </epv>
+  <eefield>      0.00000000 </eefield>
+  <enthalpy>   -30.10314909 </enthalpy>
+<atomset>
+<unit_cell 
+    a="  9.44871200   0.00000000   0.00000000"
+    b="  0.00000000   9.44871200   0.00000000"
+    c="  0.00000000   0.00000000   9.44871200" />
+  <atom name="O1" species="O">
+    <position> 0.00000000 0.00000000 0.00000000 </position>
+    <velocity> 0.00000000 0.00000000 0.00000000 </velocity>
+    <force> -0.00000361 -0.00000205 -0.32288967 </force>
+  </atom>
+  <atom name="O2" species="O">
+    <position> 0.00000000 0.00000000 2.28657330 </position>
+    <velocity> 0.00000000 0.00000000 0.00000000 </velocity>
+    <force> 0.00000290 0.00000223 0.32297180 </force>
+  </atom>
+</atomset>
+<unit_cell_a_norm> 9.448712 </unit_cell_a_norm>
+<unit_cell_b_norm> 9.448712 </unit_cell_b_norm>
+<unit_cell_c_norm> 9.448712 </unit_cell_c_norm>
+<unit_cell_alpha>  90.000 </unit_cell_alpha>
+<unit_cell_beta>   90.000 </unit_cell_beta>
+<unit_cell_gamma>  90.000 </unit_cell_gamma>
+<unit_cell_volume> 843.564 </unit_cell_volume>
+<timing name="iteration"       min="1.562" max="1.562"/>
+</iteration>
+<timing name="charge"          min="0.087" max="0.087"/>
+<timing name="energy"          min="0.418" max="0.418"/>
+<timing name="jd_blocks"       min="0.041" max="0.041"/>
+<timing name="jd_compute_z"    min="0.018" max="0.018"/>
+<timing name="jd_gemm"         min="0.021" max="0.021"/>
+<timing name="jd_getsub"       min="0.002" max="0.002"/>
+<timing name="jd_hz"           min="0.298" max="0.298"/>
+<timing name="jd_residual"     min="0.008" max="0.008"/>
+<timing name="jd_syev"         min="0.017" max="0.017"/>
+<timing name="update_vhxc"     min="0.641" max="0.641"/>
+<timing name="wf_update"       min="0.372" max="0.372"/>
+<timing name="wfdiag"          min="0.005" max="0.005"/>
+<timing name="ekin"            min="0.015" max="0.015"/>
+<timing name="exc"             min="0.622" max="0.622"/>
+<timing name="hpsi"            min="0.602" max="0.602"/>
+<timing name="nonlocal"        min="0.098" max="0.098"/>
+<timing name="charge_compute"  min="0.057" max="0.057"/>
+<timing name="charge_integral" min="0.004" max="0.004"/>
+<timing name="charge_rowsum"   min="0.002" max="0.002"/>
+<timing name="charge_vft"      min="0.026" max="0.026"/>
+[qbox] <cmd></cmd>
+[qbox] <cmd>save o2.xml</cmd>
+ SampleWriter: write time: 0.027 s
+ SampleWriter: file size: 595511
+ SampleWriter: aggregate write rate: 21.23 MB/s
+[qbox] <cmd></cmd>
+[qbox]  End of command stream 
+<real_time> 1.66 </real_time>
+<end_time> 2020-02-14T21:41:27Z </end_time>
+</fpmd:simulation>
