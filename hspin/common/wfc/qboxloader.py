@@ -7,7 +7,7 @@ import base64
 
 from ase import Atoms, Atom
 
-from ..external import parse_many_values
+from ..misc import parse_many_values
 from ..units import bohr_to_angstrom
 from .baseloader import WavefunctionLoader
 from ..cell import Cell

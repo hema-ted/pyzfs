@@ -3,8 +3,8 @@ import numpy as np
 import os
 from mpi4py import MPI
 from pprint import pprint
-from ..common.external import parse_sys_argv
-from ..common.external import parse_many_values
+from ..common.misc import parse_sys_argv
+from ..common.misc import parse_many_values
 from ..zfs.main import ZFSCalculation
 from ..common.parallel import mpiroot
 
@@ -13,7 +13,6 @@ from ..common.parallel import mpiroot
 Example:
     mpirun -n 256 python -m hspin.exec.runzfs --wfcfmt qeh5 --prefix pwscf
     mpirun -n 256 python -m hspin.exec.runzfs --path /home/mahe/zfs/nv/pwscf.save --wfcfmt qe
-    mpirun -n 256 python -m hspin.exec.runzfs --wfcfmt vasp
 
 Acceptable kwargs are:
     --path: working directory for this calculation. Python will first change
@@ -77,9 +76,9 @@ elif wfcfmt == "qbox":
     from ..common.wfc.qboxloader import QboxWavefunctionLoader
     filename = kwargs.pop("filename", None)
     wfcloader = QboxWavefunctionLoader(filename=filename)
-elif wfcfmt == "vasp":
-    from ..common.wfc.vasploader import VaspWavefunctionLoader
-    wfcloader = VaspWavefunctionLoader()
+# elif wfcfmt == "vasp":
+#     from ..common.wfc.vasploader import VaspWavefunctionLoader
+#     wfcloader = VaspWavefunctionLoader()
 elif wfcfmt == "qeh5":
     from ..common.wfc.qeh5loader import QEHDF5WavefunctionLoader
     prefix = kwargs.pop("prefix", "pwscf")

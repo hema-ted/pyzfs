@@ -12,7 +12,7 @@ from .wavefunction import Wavefunction
 from ..counter import Counter
 from ..parallel import SymmetricDistributedMatrix
 
-from ...common.external import empty_ase_cell
+from ...common.misc import empty_ase_cell
 
 
 def _compute_offset(sdm, iorb):

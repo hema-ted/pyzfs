@@ -8,8 +8,8 @@ from ..ft import FourierTransform, fftshift, ifftshift, irfftn, ifftn
 from .wavefunction import Wavefunction
 from ..counter import Counter
 
-from ...common.external import empty_ase_cell
-from ...common.external import parse_one_value
+from ...common.misc import empty_ase_cell
+from ...common.misc import parse_one_value
 
 
 class QEWavefunctionLoader(WavefunctionLoader):
