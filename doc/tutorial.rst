@@ -24,7 +24,7 @@ For parallel execution, use the following command
 
    $ mpiexec [-n num_of_processes] python -m pyzfs.exec.runzfs [--flags]
 
-where `num_of_processors` is the number of processes.
+where `num_of_processes` is the number of processes. **pyzfs** distributes the calculations on a square grid of processes. If `num_of_processes` is not a square number, **pyzfs** will use the largest square number of processes smaller than `num_of_processes` for calculations.
 
 Acceptable flags [`--flags`] are listed below, for detailed explanation see `pyzfs.exec.runzfs.py`.
 

@@ -174,7 +174,7 @@ class ZFSCalculation:
         if self.pgrid.onroot:
 
             print("\n\nTotal D tensor (MHz): ")
-            pprint(self.D)
+            print(self.D)
             print("D eigenvalues (MHz): ")
             print(self.ev)
             print("D eigenvectors: ")
@@ -183,7 +183,7 @@ class ZFSCalculation:
             print(self.evc[:, 2])
             print("Dx, Dy, Dz (|Dz| > |Dx| > |Dy|) (MHz): ")
             print(dx, dy, dz)
-            print("D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue))
+            print("Scalar D = {:.2f} MHz, E = {:.2f} MHz".format(self.Dvalue, self.Evalue))
 
             self.print_memory_usage()
 
@@ -221,11 +221,10 @@ class ZFSCalculation:
 
         """
         from lxml import etree
-        from .. import __code__, __version__, __git_summary__
+        from .. import version
         root = etree.Element("root")
-        etree.SubElement(root, "code").text = __code__
-        etree.SubElement(root, "version").text = __version__
-        etree.SubElement(root, "git_summary").text = __git_summary__
+        etree.SubElement(root, "code").text = "PyZFS"
+        etree.SubElement(root, "version").text = version
         etree.SubElement(root, "object").text = self.__class__.__name__
         etree.SubElement(root, "DTensor", unit="MHz").text = np.array2string(self.D)
         etree.SubElement(root, "D", unit="MHz").text = "{:.2f}".format(self.Dvalue)
