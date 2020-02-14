@@ -3,28 +3,28 @@
 Code documentation
 ==================
 
-**hspin** detailed documentation.
+**pyzfs** detailed documentation.
 
 ZFS
 ------
 
-.. automodule:: hspin.zfs.main
+.. automodule:: pyzfs.zfs.main
     :members:
     :show-inheritance:
 
 Common
 ------
 
-.. automodule:: hspin.common.wfc.wavefunction
+.. automodule:: pyzfs.common.wfc.wavefunction
     :members:
 
-.. automodule:: hspin.common.cell
+.. automodule:: pyzfs.common.cell
     :members:
 
-.. automodule:: hspin.common.ft
+.. automodule:: pyzfs.common.ft
     :members:
 
-.. automodule:: hspin.common.parallel
+.. automodule:: pyzfs.common.parallel
     :members:
 
 

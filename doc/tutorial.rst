@@ -4,11 +4,11 @@
 Tutorial
 ============
 
-After installation, **hspin** can be executed in two manners:
+After installation, **pyzfs** can be executed in two manners:
 
 1. Construct WavefunctionLoader and ZFSCalculation loader from within Python terminal or Jupyter notebook, and call ZFSCalculation.solve to perform the calculation.
 
-2. Directly execute hspin.exec.runzfs with Python from a terminal.
+2. Directly execute pyzfs.exec.runzfs with Python from a terminal.
 
 We will mainly focus on approch 2, which works more smoothly with MPI.
 
@@ -16,17 +16,17 @@ For serial execution, simply type the following command in the folder that conta
 
 .. code:: bash
 
-   $ python -m hspin.exec.runzfs [--flags]
+   $ python -m pyzfs.exec.runzfs [--flags]
 
 For parallel execution, use the following command
    
 .. code:: bash
 
-   $ mpiexec [-n num_of_processes] python -m hspin.exec.runzfs [--flags]
+   $ mpiexec [-n num_of_processes] python -m pyzfs.exec.runzfs [--flags]
 
 where `num_of_processors` is the number of processes.
 
-Acceptable flags [`--flags`] are listed below, for detailed explanation see `hspin.exec.runzfs.py`.
+Acceptable flags [`--flags`] are listed below, for detailed explanation see `pyzfs.exec.runzfs.py`.
 
 - `path`: working directory for this calculation. Python will first change the working dir before any calculations. Default is ".".
 

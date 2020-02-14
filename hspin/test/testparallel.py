@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 from unittest import TestCase, TestLoader, TextTestRunner
 
 import numpy as np
-from hspin.common.parallel import ProcessorGrid, DistributedMatrix
+from pyzfs.common.parallel import ProcessorGrid, DistributedMatrix
 from mpi4py import MPI
 from numpy.random import randint, choice
 

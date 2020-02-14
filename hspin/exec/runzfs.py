@@ -11,8 +11,8 @@ from ..common.parallel import mpiroot
 """Run Zero Field Splitting calculation
 
 Example:
-    mpirun -n 256 python -m hspin.exec.runzfs --wfcfmt qeh5 --prefix pwscf
-    mpirun -n 256 python -m hspin.exec.runzfs --path /home/mahe/zfs/nv/pwscf.save --wfcfmt qe
+    mpirun -n 256 python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
+    mpirun -n 256 python -m pyzfs.exec.runzfs --path /home/mahe/zfs/nv/pwscf.save --wfcfmt qe
 
 Acceptable kwargs are:
     --path: working directory for this calculation. Python will first change
@@ -56,7 +56,7 @@ kwargs.update(parse_sys_argv()[1])
 # Change directory
 path = kwargs.pop("path")
 if mpiroot:
-    print("hspin.exec.runzfs: setting working directory as \"{}\"...".format(path))
+    print("pyzfs.exec.runzfs: setting working directory as \"{}\"...".format(path))
 os.chdir(path)
 
 # Construct proper wavefunction loader
@@ -90,7 +90,7 @@ kwargs["wfcloader"] = wfcloader
 
 # ZFS calculation
 if mpiroot:
-    print("\n\nhspin.exec.runzfs: instantializing ZFSCalculation with following arguments...")
+    print("\n\npyzfs.exec.runzfs: instantializing ZFSCalculation with following arguments...")
     pprint(kwargs, indent=2)
 
 zfscalc = ZFSCalculation(**kwargs)

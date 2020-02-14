@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'hspin'
+project = 'pyzfs'
 copyright = '2020, He Ma, Marco Govoni, Giulia Galli'
 author = 'He Ma, Marco Govoni, Giulia Galli'
 
