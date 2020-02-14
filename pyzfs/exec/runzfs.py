@@ -3,6 +3,7 @@ import numpy as np
 import os
 from mpi4py import MPI
 from pprint import pprint
+import pkg_resources
 from ..common.misc import parse_sys_argv
 from ..common.misc import parse_many_values
 from ..zfs.main import ZFSCalculation
@@ -11,8 +12,8 @@ from ..common.parallel import mpiroot
 """Run Zero Field Splitting calculation
 
 Example:
-    mpirun -n 256 python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
-    mpirun -n 256 python -m pyzfs.exec.runzfs --path /home/mahe/zfs/nv/pwscf.save --wfcfmt qe
+    mpirun python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
+    mpirun python -m pyzfs.exec.runzfs --wfcfmt qbox --filename gs.xml
 
 Acceptable kwargs are:
     --path: working directory for this calculation. Python will first change
@@ -40,67 +41,74 @@ Acceptable kwargs are:
     --memory: "high", "low" or "critical". See ZFSCalculation documentation. Default is "critical".
 """
 
-# Default arguments
-kwargs = {
-    "path": ".",
-    "wfcfmt": "qeh5",
-    "prefix": "pwscf",
-    "fftgrid": "wave",
-    "comm": MPI.COMM_WORLD,
-    "memory": "low"
-}
+if __name__ == "__main__":
+    if mpiroot:
+        version = pkg_resources.require("PyZFS")[0].version
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("PyZFS version {}".format(version))
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-# Override default arguments with sys.argv
-kwargs.update(parse_sys_argv()[1])
+    # Default arguments
+    kwargs = {
+        "path": ".",
+        "wfcfmt": "qeh5",
+        "prefix": "pwscf",
+        "fftgrid": "wave",
+        "comm": MPI.COMM_WORLD,
+        "memory": "low"
+    }
 
-# Change directory
-path = kwargs.pop("path")
-if mpiroot:
-    print("pyzfs.exec.runzfs: setting working directory as \"{}\"...".format(path))
-os.chdir(path)
+    # Override default arguments with sys.argv
+    kwargs.update(parse_sys_argv()[1])
 
-# Construct proper wavefunction loader
-wfcfmt = kwargs.pop("wfcfmt")
-fftgrid = kwargs.pop("fftgrid")
-if fftgrid not in ["density", "wave"]:
-    fftgrid = np.array(parse_many_values(3, int, fftgrid))
-if wfcfmt == "qe":
-    from ..common.wfc.qeloader import QEWavefunctionLoader
-    wfcloader = QEWavefunctionLoader(fftgrid=fftgrid)
-elif wfcfmt in ["cube-wfc", "cube-density"]:
-    from ..common.wfc.cubeloader import CubeWavefunctionLoader
-    wfcloader = CubeWavefunctionLoader(
-        density=True if wfcfmt == "cube-density" else False
-    )
-elif wfcfmt == "qbox":
-    from ..common.wfc.qboxloader import QboxWavefunctionLoader
-    filename = kwargs.pop("filename", None)
-    wfcloader = QboxWavefunctionLoader(filename=filename)
-# elif wfcfmt == "vasp":
-#     from ..common.wfc.vasploader import VaspWavefunctionLoader
-#     wfcloader = VaspWavefunctionLoader()
-elif wfcfmt == "qeh5":
-    from ..common.wfc.qeh5loader import QEHDF5WavefunctionLoader
-    prefix = kwargs.pop("prefix", "pwscf")
-    wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid, prefix=prefix)
-else:
-    raise ValueError("Unsupported wfcfmt: {}".format(wfcfmt))
+    # Change directory
+    path = kwargs.pop("path")
+    if mpiroot:
+        print("pyzfs.exec.runzfs: setting working directory as \"{}\"...".format(path))
+    os.chdir(path)
 
-kwargs["wfcloader"] = wfcloader
+    # Construct proper wavefunction loader
+    wfcfmt = kwargs.pop("wfcfmt")
+    fftgrid = kwargs.pop("fftgrid")
+    if fftgrid not in ["density", "wave"]:
+        fftgrid = np.array(parse_many_values(3, int, fftgrid))
+    if wfcfmt == "qe":
+        from ..common.wfc.qeloader import QEWavefunctionLoader
+        wfcloader = QEWavefunctionLoader(fftgrid=fftgrid)
+    elif wfcfmt in ["cube-wfc", "cube-density"]:
+        from ..common.wfc.cubeloader import CubeWavefunctionLoader
+        wfcloader = CubeWavefunctionLoader(
+            density=True if wfcfmt == "cube-density" else False
+        )
+    elif wfcfmt == "qbox":
+        from ..common.wfc.qboxloader import QboxWavefunctionLoader
+        filename = kwargs.pop("filename", None)
+        wfcloader = QboxWavefunctionLoader(filename=filename)
+    # elif wfcfmt == "vasp":
+    #     from ..common.wfc.vasploader import VaspWavefunctionLoader
+    #     wfcloader = VaspWavefunctionLoader()
+    elif wfcfmt == "qeh5":
+        from ..common.wfc.qeh5loader import QEHDF5WavefunctionLoader
+        prefix = kwargs.pop("prefix", "pwscf")
+        wfcloader = QEHDF5WavefunctionLoader(fftgrid=fftgrid, prefix=prefix)
+    else:
+        raise ValueError("Unsupported wfcfmt: {}".format(wfcfmt))
 
-# ZFS calculation
-if mpiroot:
-    print("\n\npyzfs.exec.runzfs: instantializing ZFSCalculation with following arguments...")
-    pprint(kwargs, indent=2)
+    kwargs["wfcloader"] = wfcloader
 
-zfscalc = ZFSCalculation(**kwargs)
-zfscalc.solve()
+    # ZFS calculation
+    if mpiroot:
+        print("\n\npyzfs.exec.runzfs: instantializing ZFSCalculation with following arguments...")
+        pprint(kwargs, indent=2)
 
-# Write global I matrix and xml file
-if zfscalc.pgrid.onroot:
-    np.save("Iijab.npy", zfscalc.Iglobal)
-    xml = zfscalc.get_xml()
-    try:
-        open("zfs.xml", "w").write(xml)
-    except TypeError:
-        open("zfs.xml", "wb").write(xml)
+    zfscalc = ZFSCalculation(**kwargs)
+    zfscalc.solve()
+
+    # Write global I matrix and xml file
+    if zfscalc.pgrid.onroot:
+        np.save("Iijab.npy", zfscalc.Iglobal)
+        xml = zfscalc.get_xml()
+        try:
+            open("zfs.xml", "w").write(xml)
+        except TypeError:
+            open("zfs.xml", "wb").write(xml)

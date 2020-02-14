@@ -112,6 +112,8 @@ class QboxWavefunctionLoader(WavefunctionLoader):
         c = Counter(len(iorbs), percent=0.1,
                     message="(process 0) {n} orbitals ({percent}%) loaded in {dt}...")
 
+
+
         for event, leaf in iterxml:
             if event == "start" and leaf.tag == "slater_determinant":
                 spin = leaf.attrib["spin"]
@@ -122,7 +124,7 @@ class QboxWavefunctionLoader(WavefunctionLoader):
                 if iorb in iorbs:
                     # switch from for z, for y, for x to for x, for y, for z
                     psir = np.frombuffer(
-                        base64.decodestring(leaf.text), dtype=np.float64
+                        base64.b64decode(leaf.text), dtype=np.float64
                     ).reshape(self.wfc.ft.n3, self.wfc.ft.n2, self.wfc.ft.n1).T
                     self.wfc.set_psir(iorb, psir)
                     c.count()

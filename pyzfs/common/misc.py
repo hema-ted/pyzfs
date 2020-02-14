@@ -3,6 +3,7 @@ import numpy as np
 from collections import OrderedDict
 import re
 from ase import Atoms
+from six import string_types
 from .units import bohr_to_angstrom
 
 
@@ -116,13 +117,13 @@ def parse_many_values(n, dtype, content):
         a list of n values
     """
 
-    if isinstance(content, basestring) or isinstance(content, np.string_):
+    if isinstance(content, string_types) or isinstance(content, np.string_):
         results = re.findall(regex(dtype), content)
         return [dtype(value) for value in results[0:n]]
 
     results = list()
     started = False
-    for i in xrange(len(content)):
+    for i in range(len(content)):
         found = re.findall(regex(dtype), content[i])
         if found:
             started = True

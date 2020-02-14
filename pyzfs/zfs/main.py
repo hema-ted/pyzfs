@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division, print_function
 from time import time
 import numpy as np
-from mpi4py import MPI
-from pprint import pprint
+import pkg_resources
 import resource
+from mpi4py import MPI
 
 from ..common.parallel import ProcessorGrid, SymmetricDistributedMatrix
 from ..common.cell import Cell
@@ -221,10 +221,9 @@ class ZFSCalculation:
 
         """
         from lxml import etree
-        from .. import version
         root = etree.Element("root")
         etree.SubElement(root, "code").text = "PyZFS"
-        etree.SubElement(root, "version").text = version
+        etree.SubElement(root, "version").text = pkg_resources.require("PyZFS")[0].version
         etree.SubElement(root, "object").text = self.__class__.__name__
         etree.SubElement(root, "DTensor", unit="MHz").text = np.array2string(self.D)
         etree.SubElement(root, "D", unit="MHz").text = "{:.2f}".format(self.Dvalue)
