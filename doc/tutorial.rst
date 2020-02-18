@@ -4,7 +4,7 @@
 Tutorial
 ============
 
-After installation, **pyzfs** can be executed in two manners:
+After installation, **PyZFS** can be executed in two manners:
 
 1. Construct WavefunctionLoader and ZFSCalculation loader from within Python terminal or Jupyter notebook, and call ZFSCalculation.solve to perform the calculation.
 
@@ -24,7 +24,7 @@ For parallel execution, use the following command
 
    $ mpiexec [-n num_of_processes] python -m pyzfs.exec.runzfs [--flags]
 
-where `num_of_processes` is the number of processes. **pyzfs** distributes the calculations on a square grid of processes. If `num_of_processes` is not a square number, **pyzfs** will use the largest square number of processes smaller than `num_of_processes` for calculations.
+where `num_of_processes` is the number of processes. **PyZFS** distributes the calculations on a square grid of processes. If `num_of_processes` is not a square number, **PyZFS** will use the largest square number of processes smaller than `num_of_processes` for calculations.
 
 Acceptable flags [`--flags`] are listed below, for detailed explanation see `pyzfs.exec.runzfs.py`.
 
@@ -48,9 +48,9 @@ Some example execution commands with flags:
 
 .. code:: bash
 
-mpiexec python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
+   $ mpiexec python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
 
 .. code:: bash
 
-mpiexec python -m pyzfs.exec.runzfs --wfcfmt qbox --filename gs.xml
+   $ mpiexec python -m pyzfs.exec.runzfs --wfcfmt qbox --filename gs.xml
 

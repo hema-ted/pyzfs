@@ -3,7 +3,7 @@
 Code documentation
 ==================
 
-**pyzfs** detailed documentation.
+**PyZFS** code documentation.
 
 ZFS
 ------
