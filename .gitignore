@@ -3,5 +3,10 @@
 /*.egg-info
 .idea
 paper.pdf
+build
 _build
-
+pw.out
+zfs.out
+zfs.xml
+Iijab.npy
+env

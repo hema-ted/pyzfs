@@ -1,0 +1,15 @@
+language: python
+python:
+  - "3.7"
+install:
+  - sudo apt-get install mpich libmpich-dev
+  - python -m pip install .
+  - export PYTHONPATH=`pwd`
+script:
+  - cd examples/o2_qe_hdf5/
+  - bash run.sh
+  - cd ../../
+  - cd examples/o2_qbox_xml/
+  - bash run.sh
+  - cd ../../
+

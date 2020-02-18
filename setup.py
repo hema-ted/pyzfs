@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="PyZFS",
+    name="pyzfs",
     version="dev",  # set as dev for development commits
     author="He Ma, Marco Govoni",
     author_email="mahe@uchicago.edu, mgovoni@anl.gov",
@@ -9,7 +9,7 @@ setup(
     packages=["pyzfs"],
     classifiers=[],
     install_requires=[
-        'numpy', 'scipy', 'mpi4py', 'ase', 'lxml',
+        'numpy', 'scipy', 'mpi4py', 'h5py', 'ase', 'lxml',
     ]
 )
 
