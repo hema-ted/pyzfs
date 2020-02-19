@@ -29,6 +29,7 @@ To install **PyZFS** in editable mode
    $ pip install -e .
 
 **PyZFS** is designed to be compatible with both Python 2 and Python 3, and depends on the following packages:
+
    - ``numpy``
    - ``scipy``
    - ``mpi4py``
