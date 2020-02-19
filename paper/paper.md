@@ -1,5 +1,5 @@
 ---
-title: 'pyzfs: A Python package for first-principles calculations of zero-field splitting tensors'
+title: 'PyZFS: A Python package for first-principles calculations of zero-field splitting tensors'
 tags:
   - materials science
   - electron spin
@@ -8,13 +8,13 @@ tags:
   - point defects
 authors:
   - name: He Ma
-    orcid: 1
+    orcid: 0000-0001-8987-8562
     affiliation: "1, 2"
   - name: Marco Govoni
     orcid: 0000-0001-6303-2403
     affiliation: "3, 2"
   - name: Giulia Galli
-    orcid: 1
+    orcid: 0000-0002-8001-5290
     affiliation: "1, 2, 3"
 affiliations:
  - name: Department of Chemistry, University of Chicago, Chicago, IL 60637, USA
@@ -30,7 +30,7 @@ bibliography: paper.bib
 # Summary
 Electron spins in molecules and materials are important resources for information storage and quantum technologies. In order to understand the physical properties of electron spins, one needs to describe the interaction of electron spins in the presence of external electromagnetic fields. Such a description may be achieved by using spin Hamiltonians, with parameters derived from experiments or from calculations. For systems with a single effective electron spin, the leading terms in the spin Hamiltonian are 
 $$ H=\mu_B \mathbf{B}\cdot\mathbf{g}\cdot\mathbf{S} + \mathbf{S} \cdot \mathbf{D} \cdot \mathbf{S}$$ 
-where $\mu_B is the Bohr magneton, $\mathbf{S}$ is the effective electron spin, $\mathbf{B}$ is the external magnetic field, $\mathbf{g}$ and $\mathbf{D}$ are rank-2 tensors that characterize the strength of electron Zeeman interaction, and zero-field splitting (ZFS). The spin Hamiltonian parameters $\mathbf{g}$ and $\mathbf{D}$ may be obtained by electron paramagnetic resonance (EPR). The ZFS tensor yields the energy splitting of spin sublevels without external fields and is an important property for open-shell molecules and spin defects in semiconductors with $S \geq 1$. Theoretically it can be determined by first-principles electronic structure calculations, which also provide important information complementary to experiments. In the case of spin defects in solids often times the atomistic structure and charge state of the defect are not straightforward to determine, experimentally. Comparing the computed spin Hamiltonian parameters for candidate structures and charge states with experimental results is a useful means to identify the properties of the defect. In addition, first-principles calculations can provide insights into the structure-property relations of molecules and spin defects, thus facilitating the rational design of molecules and materialswith desirable spin properties. Therefore, in order to devise predictive computational strategies, the development of robust methods for the calculation of spin Hamiltonian parameters is an important task. 
+where $\mu_B$ is the Bohr magneton, $\mathbf{S}$ is the effective electron spin, $\mathbf{B}$ is the external magnetic field, $\mathbf{g}$ and $\mathbf{D}$ are rank-2 tensors that characterize the strength of electron Zeeman interaction, and zero-field splitting (ZFS). The spin Hamiltonian parameters $\mathbf{g}$ and $\mathbf{D}$ may be obtained by electron paramagnetic resonance (EPR). The ZFS tensor yields the energy splitting of spin sublevels without external fields and is an important property for open-shell molecules and spin defects in semiconductors with $S \geq 1$. Theoretically it can be determined by first-principles electronic structure calculations, which also provide important information complementary to experiments. In the case of spin defects in solids often times the atomistic structure and charge state of the defect are not straightforward to determine, experimentally. Comparing the computed spin Hamiltonian parameters for candidate structures and charge states with experimental results is a useful means to identify the properties of the defect. In addition, first-principles calculations can provide insights into the structure-property relations of molecules and spin defects, thus facilitating the rational design of molecules and materialswith desirable spin properties. Therefore, in order to devise predictive computational strategies, the development of robust methods for the calculation of spin Hamiltonian parameters is an important task. 
 
 In this work we describe the code `pyzfs` for the calculation of zero-field splitting (ZFS) tensor $\mathbf{D}$ based on wavefunctions obtained from density functional theory (DFT) calculations. For systems without heavy elements, i.e. where spin-orbit interactions are negligible, the ZFS is determined by spin-spin interactions, and can be represented as an expectation value of dipole-dipole interactions on the DFT Kohn-Sham orbitals 
 $$ D_{ab} = \frac{1}{2} \frac{1}{S(2S-1)} \frac{\mu_0}{4\pi} (\gamma_\text{e} \hbar)^2 \ \sum_{i \le j}^{\text{occ.}} \chi_{ij} \langle \Phi_{ij}| \  \frac{ r^2\delta_{ab} - 3r_a r_b }{ r^5 } \  |\Phi_{ij} \rangle $$
