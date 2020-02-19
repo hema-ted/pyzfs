@@ -26,7 +26,7 @@ For parallel execution, use the following command
 
 where `num_of_processes` is the number of processes. **PyZFS** distributes the calculations on a square grid of processes. If `num_of_processes` is not a square number, **PyZFS** will use the largest square number of processes smaller than `num_of_processes` for calculations.
 
-Acceptable flags [`--flags`] are listed below, for detailed explanation see `pyzfs.exec.runzfs.py`.
+Acceptable flags [`--flags`] are listed below, for detailed explanation see `pyzfs/exec/runzfs.py`.
 
 - `path`: working directory for this calculation. Python will first change the working dir before any calculations. Default is ".".
 
