@@ -4,6 +4,7 @@ import numpy as np
 import pkg_resources
 import resource
 from mpi4py import MPI
+from lxml import etree
 
 from ..common.parallel import ProcessorGrid, SymmetricDistributedMatrix
 from ..common.cell import Cell
@@ -220,10 +221,14 @@ class ZFSCalculation:
             A string containing xml.
 
         """
-        from lxml import etree
+        try:
+            version = pkg_resources.require("PyZFS")[0].version
+        except Exception:
+            version = ""
+
         root = etree.Element("root")
         etree.SubElement(root, "code").text = "PyZFS"
-        etree.SubElement(root, "version").text = pkg_resources.require("PyZFS")[0].version
+        etree.SubElement(root, "version").text = version
         etree.SubElement(root, "object").text = self.__class__.__name__
         etree.SubElement(root, "DTensor", unit="MHz").text = np.array2string(self.D)
         etree.SubElement(root, "D", unit="MHz").text = "{:.2f}".format(self.Dvalue)

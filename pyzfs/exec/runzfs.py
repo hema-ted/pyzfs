@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import os
+from datetime import datetime
 from mpi4py import MPI
 from pprint import pprint
 import pkg_resources
@@ -43,9 +44,14 @@ Acceptable kwargs are:
 
 if __name__ == "__main__":
     if mpiroot:
-        version = pkg_resources.require("PyZFS")[0].version
+        try:
+            version = pkg_resources.require("PyZFS")[0].version
+        except Exception:
+            version = ""
+
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("PyZFS {}".format(version))
+        print("PyZFS code {}".format(version))
+        print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
     # Default arguments
