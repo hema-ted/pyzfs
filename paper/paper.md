@@ -9,13 +9,13 @@ tags:
 authors:
   - name: He Ma
     orcid: 0000-0001-8987-8562
-    affiliation: "1, 2"
+    affiliation: "1,3"
   - name: Marco Govoni
     orcid: 0000-0001-6303-2403
-    affiliation: "3, 2"
+    affiliation: "3,2"
   - name: Giulia Galli
     orcid: 0000-0002-8001-5290
-    affiliation: "1, 2, 3"
+    affiliation: "1,2,3"
 affiliations:
  - name: Department of Chemistry, University of Chicago, Chicago, IL 60637, USA
    index: 1
@@ -23,7 +23,7 @@ affiliations:
    index: 2
  - name: Materials Science Division and Center for Molecular Engineering, Argonne National Laboratory, Lemont, IL 60439, USA
    index: 3
-date: 06 February 2020
+date: 28 February 2020
 bibliography: paper.bib
 ---
 
@@ -40,7 +40,7 @@ The ZFS tensor can be predicted from first-principles calculations, thus complem
 Furthermore, the comparison of computed and measured ZFS tensors may provide important information on the atomistic structure and charge state of defects in solids, thus helping to identify the defect configuration present in experimental samples.
 Therefore, the development of robust methods for the calculation of the ZFS tensor is an interesting topic in molecular chemistry and materials science.
 
-In this work we describe the code `PyZFS` for the calculation of the ZFS tensor $\mathbf{D}$ of molecules and solids, based on wave-functions obtained from density functional theory (DFT) calculations.
+In this work we describe the code `PyZFS` for the calculation of the ZFS tensor $\mathbf{D}$ of molecules and solids, based on wavefunctions obtained from density functional theory (DFT) calculations.
 For systems without heavy elements, i.e. where spin-orbit coupling is negligible, magnetic spin-spin interactions are the dominant ones in the determination of the ZFS tensor.
 For molecules and materials with magnetic permeability close to the vacuum permeability $\mu_0$, the spin-spin ZFS tensor evaluated using the DFT Kohn-Sham wavefunctions, is given by:
 $$ D_{ab} = \frac{1}{2S(2S-1)} \frac{\mu_0}{4\pi} (\gamma_\mathrm{e} \hbar)^2 \ \sum_{i < j}^{\mathrm{occ.}} \chi_{ij} \langle \Phi_{ij}| \ \frac{ r^2\delta_{ab} - 3r_a r_b }{ r^5 } \ |\Phi_{ij} \rangle $$
@@ -67,7 +67,7 @@ Thanks to the parallel design of the code, `PyZFS` can perform calculations for 
 For example, the calculations performed in [@Whiteley:2019] used supercells that contain more than 3000 valence electrons, and are among the largest first-principles calculations of ZFS tensors reported by the time this document was written.
 
 # Acknowledgements
-We thank Hosung Seo for helpful discussions. 
+We thank Hosung Seo for helpful discussions.
 This work was supported by MICCoM, as part of the Computational Materials Sciences Program funded by the U.S. Department of Energy, Office of Science, Basic Energy Sciences, Materials Sciences and Engineering Division through Argonne National Laboratory, under contract number DE-AC02-06CH11357.
 
 # References
