@@ -10,7 +10,7 @@ After installation, **PyZFS** can be executed in two manners:
 
 2. Directly execute pyzfs.exec.runzfs with Python from a terminal.
 
-We will mainly focus on approch 2, which works more smoothly with MPI.
+For approach 1, see an example Jupyter notebook at /examples/o2_qe_hdf5/run.ipynb. Here we will mainly focus on approch 2, which works more smoothly with MPI.
 
 For serial execution, simply type the following command in the folder that contains DFT wavefunction file(s)
 
