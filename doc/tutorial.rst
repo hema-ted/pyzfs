@@ -7,57 +7,67 @@ Tutorial
 After installation, **PyZFS** can be executed in two manners:
 
 1. Construct WavefunctionLoader and ZFSCalculation loader from within Python terminal or Jupyter notebook, and call ZFSCalculation.solve to perform the calculation.
-
-2. Directly execute pyzfs.exec.runzfs with Python from a terminal.
-
-For approach 1, see an example Jupyter notebook at /examples/o2_qe_hdf5/run.ipynb. Here we will mainly focus on approch 2, which works more smoothly with MPI.
-
-For serial execution, simply type the following command in the folder that contains DFT wavefunction file(s)
-
-.. code:: bash
-
-   $ python -m pyzfs.exec.runzfs [--flags]
-
-For parallel execution, use the following command
    
-.. code:: bash
+   An example Python script for computing the ZFS tensor for oxygen molecule is shown below. */path/to/o2.xml* should be replaced by the path to the *pyzfs/examples/o2_qbox_xml/o2.xml* file in the **PyZFS** folder.
+   
+   .. code:: python
 
-   $ mpiexec [-n num_of_processes] python -m pyzfs.exec.runzfs [--flags]
+      >>> from pyzfs.common.wfc.qboxloader import QboxWavefunctionLoader
+      >>> from pyzfs.zfs.main import ZFSCalculation
+      >>> wfcloader = QboxWavefunctionLoader(filename='/path/to/o2.xml')  # Construct wavefunction loader
+      >>> zfscalc = ZFSCalculation(wfcloader=wfcloader)  # Set up ZFS calculation
+      >>> zfscalc.solve()  # Perform ZFS calculation
 
-where `num_of_processes` is the number of processes. **PyZFS** distributes the calculations on a square grid of processes. If `num_of_processes` is not a square number, **PyZFS** will use the largest square number of processes smaller than `num_of_processes` for calculations.
+   Example Jupyter notebooks can be found at /examples/o2_qbox_xml/run.ipynb and /examples/o2_qe_hdf5/run.ipynb.
 
-Acceptable flags [`--flags`] are listed below, for detailed explanation see `pyzfs/exec/runzfs.py`.
+2. Directly execute *pyzfs.exec.runzfs* with `python -m`. This approach works more smoothly with MPI. 
+   
+   For serial execution, simply type the following command in the folder that contains DFT wavefunction file(s)
 
-- `path`: working directory for this calculation. Python will first change the working dir before any calculations. Default is ".".
+   .. code:: bash
 
-- `wfcfmt`: format of input wavefunction. Default is "qeh5". Supported values are:
+      $ python -m pyzfs.exec.runzfs [--flags]
 
-   - "qeh5": Quantum Espresso HDF5 save file. path should contains "prefix.xml" and save folder.
-   - "qe": Quantum Espresso (v6.1) save file. path should be the save folder that contains "data-files.xml", etc.
-   - "qbox": Qbox xml file.
-   - "cube-wfc": cube files of (real) wavefunctions (Kohn-Sham orbitals).
-   - "cube-density": cube files of (signed) squared wavefunction, this option is to support `pp.x` output with `plot_num = 7` and `lsign = .TRUE.`.
+   For parallel execution, use the following command
 
-- `filename`: name of the Qbox sample XML file that contains input wavefunction. Only used if `wfcfmt = "qbox"`.
+   .. code:: bash
 
-- `fftgrid`: FFT grid used. Supported values are "density" or "wave". If "wave" is specified, use a reduced FFT grid to perform calculations. Default is "wave".
+      $ mpiexec [-n num_of_processes] python -m pyzfs.exec.runzfs [--flags]
 
-- `memory`: "high", "low" or "critical". See ZFSCalculation documentation. Default is "critical".
+   where *num_of_processes* is the number of processes. **PyZFS** distributes the calculations on a square grid of processes. If *num_of_processes* is not a square number, **PyZFS** will use the largest square number of processes smaller than *num_of_processes* for calculations.
 
-An example execution command for Quantum Espresso HDF5 save file is
+   Acceptable flags [--flags] are listed below, for detailed explanation see *pyzfs/exec/runzfs.py*.
 
-.. code:: bash
+   - `path`: working directory for this calculation. Python will first change the working dir before any calculations. Default is ".".
 
-   $ mpiexec python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
+   - `wfcfmt`: format of input wavefunction. Default is "qeh5". Supported values are:
 
-where pwscf is the prefix used for the Quantum Espresso calculation.
+      - "qeh5": Quantum Espresso HDF5 save file. path should contains "prefix.xml" and save folder.
+      - "qe": Quantum Espresso (v6.1) save file. path should be the save folder that contains "data-files.xml", etc.
+      - "qbox": Qbox xml file.
+      - "cube-wfc": cube files of (real) wavefunctions (Kohn-Sham orbitals).
+      - "cube-density": cube files of (signed) squared wavefunction, this option is to support `pp.x` output with `plot_num = 7` and `lsign = .TRUE.`.
 
-An example execution command for Qbox XML save file is
+   - `filename`: name of the Qbox sample XML file that contains input wavefunction. Only used if `wfcfmt = "qbox"`.
 
-.. code:: bash
+   - `fftgrid`: FFT grid used. Supported values are "density" or "wave". If "wave" is specified, use a reduced FFT grid to perform calculations. Default is "wave".
 
-   $ mpiexec python -m pyzfs.exec.runzfs --wfcfmt qbox --filename gs.xml
+   - `memory`: "high", "low" or "critical". See ZFSCalculation documentation. Default is "critical".
 
-where gs.xml is the XML save file generated by Qbox.
+   An example execution command for Quantum Espresso HDF5 save file is
 
-See pyzfs/examples for examples of computing the ZFS tensor for the oxygen molecule and the nitrogen-vacancy (NV) center in diamond.
+   .. code:: bash
+
+      $ mpiexec python -m pyzfs.exec.runzfs --wfcfmt qeh5 --prefix pwscf
+
+   where pwscf is the prefix used for the Quantum Espresso calculation.
+
+   An example execution command for Qbox XML save file is
+
+   .. code:: bash
+
+      $ mpiexec python -m pyzfs.exec.runzfs --wfcfmt qbox --filename gs.xml
+
+   where gs.xml is the XML save file generated by Qbox.
+
+See *pyzfs/examples* for examples of computing the ZFS tensor for the oxygen molecule and the nitrogen-vacancy (NV) center in diamond.
