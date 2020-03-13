@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # qb < qb.in > qb.out
-python -m pyzfs.exec.runzfs --wfcfmt qbox > zfs.out
+
+pyzfs --wfcfmt qbox > zfs.out
+# equivalently: python -m pyzfs.exec.runzfs --wfcfmt qbox > zfs.out
 
 D=`grep --color=never "D unit" zfs.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`
 Dref=`grep --color=never "D unit" zfs_ref.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`

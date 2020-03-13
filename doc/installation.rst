@@ -18,25 +18,17 @@ or the following command on Mac
 
 **PyZFS** can be executed with Python 2.7 and Python 3.5+. However, to run **PyZFS** with Python 2.7 one may need to build certain legacy versions of dependencies such as **ase** (**ase** v3.17.0 is tested to work with **PyZFS** in Python 2).
 
-**PyZFS** can be installed by **pip**. First, clone the git repository into a local directory
+It is recommended to install **PyZFS** using **pip**. First, clone the git repository into a local directory
 
 .. code:: bash
 
    $ git clone https://github.com/hema-ted/pyzfs.git
 
-Then, execute **pip** in the folder containing  **setup.py**
+Then, execute **pip** in the folder containing **setup.py**
 
 .. code:: bash
 
-   $ pip install -e .
-
-Since **PyZFS** may be executed with **python -m** (see :ref:`tutorial`), it is recommended to install it in editable mode (-e) and add the code path to the **PYTHONPATH** by appending the following command to **.bashrc** file
-
-.. code:: bash
-
-   $ export PYTHONPATH=$PYTHONPATH:path/to/pyzfs
-
-Note that it is necessary for the path of **PyZFS** to be included in the **PYTHONPATH** for the **python -m** command to find **PyZFS**.
+   $ pip install .
 
 **PyZFS** depends on the following packages, which will be installed automatically if installed through **pip**
 
@@ -46,3 +38,9 @@ Note that it is necessary for the path of **PyZFS** to be included in the **PYTH
    - ``h5py``
    - ``ase``
    - ``lxml``
+
+If using **pip** is not possible, one can manually install the above dependencies, and then include the directory of **PyZFS** repository to the **PYTHONPATH** by appending the following command to the **.bashrc** file
+
+.. code:: bash
+
+   $ export PYTHONPATH=$PYTHONPATH:path/to/pyzfs
