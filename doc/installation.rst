@@ -16,6 +16,8 @@ or the following command on Mac
 
    $ brew install mpich
 
+**PyZFS** can be executed with Python 2.7 and Python 3.5+. However, to run **PyZFS** with Python 2.7 one may need to build certain legacy versions of dependencies such as **ase** (**ase** v3.17.0 is tested to work with **PyZFS** in Python 2).
+
 **PyZFS** can be installed by **pip**. First, clone the git repository into a local directory
 
 .. code:: bash
@@ -44,5 +46,3 @@ Note that it is necessary for the path of **PyZFS** to be included in the **PYTH
    - ``h5py``
    - ``ase``
    - ``lxml``
-
-**PyZFS** is designed to be compatible with both Python 2 and Python 3. However, to run **PyZFS** with Python 2 one may need to build certain legacy versions of dependencies such as **ase**.

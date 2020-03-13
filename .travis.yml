@@ -1,6 +1,9 @@
 language: python
 python:
+  - "3.5"
+  - "3.6"
   - "3.7"
+  - "3.8"
 install:
   - sudo apt-get install mpich libmpich-dev
   - python -m pip install .
@@ -12,4 +15,3 @@ script:
   - cd examples/o2_qbox_xml/
   - bash run.sh
   - cd ../../
-
