@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# The wavefunction used was generated with Qbox 1.67.4
+# The wavefunction used was generated with Qbox 1.67.4 using the following command
 # qb < qb.in > qb.out
 
+# Run PyZFS to compute the ZFS tensor
 pyzfs --wfcfmt qbox > zfs.out
-# equivalently: python -m pyzfs.exec.runzfs --wfcfmt qbox > zfs.out
+# An equivalent command is:
+# python -m pyzfs.exec.runzfs --wfcfmt qbox > zfs.out
 
 D=`grep --color=never "D unit" zfs.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`
 Dref=`grep --color=never "D unit" zfs_ref.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`

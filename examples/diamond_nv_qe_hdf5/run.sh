@@ -7,10 +7,13 @@
 # Note that the compilation of QE can be technical and users unfamiliar with the process may find it helpful to consult experts first.
 # QE must be compiled with HDF5 flag enabled, i.e. when configuring QE one needs to specify HDF5 library (--with-hdf5=/path/to/hdf5/lib/).
 
+# Run QE to generate wavefunction
 mpirun pw.x -i pw.in > pw.out
 
+# Run PyZFS to compute the ZFS tensor
 mpirun pyzfs --wfcfmt qeh5 > zfs.out
-# equivalently: mpirun python -m pyzfs.exec.runzfs --wfcfmt qeh5 > zfs.out
+# An equivalent command is:
+# mpirun python -m pyzfs.exec.runzfs --wfcfmt qeh5 > zfs.out
 
 D=`grep --color=never "D unit" zfs.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`
 Dref=`grep --color=never "D unit" zfs_ref.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`
