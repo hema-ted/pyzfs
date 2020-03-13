@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# The wavefunction used was generated with QE 6.4.1.
 # pw.x -i pw.in > pw.out
 
 pyzfs --wfcfmt qeh5 > zfs.out

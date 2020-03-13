@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# QE save file is too large to be included in Git repo.
-# To run this test, QE calculation will be performed.
-# QE must be compiled with HDF5 flag enabled.
+# QE save file is too large to be included in Git repo. Therefore, to run this test, an actual QE calculation will be performed to obtain the wavefunction.
+# This example was tested with QE 6.4.1.
+
+# To install QE, please follow instructions on https://www.quantum-espresso.org/Doc/user_guide/
+# Note that the compilation of QE can be technical and users unfamiliar with the process may find it helpful to consult experts first.
+# QE must be compiled with HDF5 flag enabled, i.e. when configuring QE one needs to specify HDF5 library (--with-hdf5=/path/to/hdf5/lib/).
 
 mpirun pw.x -i pw.in > pw.out
 

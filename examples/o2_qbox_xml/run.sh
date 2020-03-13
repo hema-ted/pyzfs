@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# The wavefunction used was generated with Qbox 1.67.4
 # qb < qb.in > qb.out
 
 pyzfs --wfcfmt qbox > zfs.out
