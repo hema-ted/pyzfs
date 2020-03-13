@@ -42,7 +42,7 @@ Acceptable kwargs are:
     --memory: "high", "low" or "critical". See ZFSCalculation documentation. Default is "critical".
 """
 
-if __name__ == "__main__":
+def main():
     if mpiroot:
         try:
             version = pkg_resources.require("PyZFS")[0].version
@@ -118,3 +118,6 @@ if __name__ == "__main__":
             open("zfs.xml", "w").write(xml)
         except TypeError:
             open("zfs.xml", "wb").write(xml)
+
+if __name__ == "__main__":
+    main()

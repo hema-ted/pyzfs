@@ -10,6 +10,9 @@ setup(
     classifiers=[],
     install_requires=[
         'numpy', 'scipy', 'mpi4py', 'h5py', 'ase', 'lxml',
-    ]
+    ],
+    entry_points={
+        "console_scripts": ["runzfs = pyzfs.exec.runzfs:main"]
+    }
 )
 
