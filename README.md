@@ -10,11 +10,12 @@ The tutorial and documentation are hosted on [Read the Docs](https://pyzfs-doc.r
 Authors
 ------------
 He Ma (mahe@uchicago.edu)
+
 Marco Govoni (mgovoni@anl.gov)
+
 Giulia Galli (gagalli@uchicago.edu)
 
 Contact, support, and contribution information
 ----------------------------------------------
 
-To contact the authors about **PyZFS**, please use the `issue tracker
-<https://github.com/hema-ted/pyzfs/issues>`_ of the GitHub project. Bug reports and contributions to new features are welcome.
+To contact the authors about **PyZFS**, please use the [issue tracker](https://github.com/hema-ted/pyzfs/issues) of the GitHub project. Bug reports and contributions to new features are welcome.
