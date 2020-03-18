@@ -213,7 +213,6 @@ class ZFSCalculation:
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
             ))
 
-
     def get_xml(self):
         """Generate an xml to store information of this calculation.
 

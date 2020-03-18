@@ -40,15 +40,15 @@ After installation, **PyZFS** can be executed in two manners:
 
    .. code:: bash
 
-      $ python -m pyzfs.exec.runzfs [--flags]
+      $ python -m pyzfs.run [--flags]
 
    and
 
    .. code:: bash
 
-      $ mpiexec [-n num_of_processes] python -m pyzfs.exec.runzfs [--flags]
+      $ mpiexec [-n num_of_processes] python -m pyzfs.run [--flags]
 
-   Acceptable flags [--flags] are listed below, for detailed explanation see *pyzfs/exec/runzfs.py*.
+   Acceptable flags [--flags] are listed below, for detailed explanation see *pyzfs/run.py*.
 
    - `path`: working directory for this calculation. Python will first change the working dir before any calculations. Default is ".".
 

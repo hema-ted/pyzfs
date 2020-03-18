@@ -6,7 +6,7 @@
 # Run PyZFS to compute the ZFS tensor
 pyzfs --wfcfmt qbox > zfs.out
 # An equivalent command is:
-# python -m pyzfs.exec.runzfs --wfcfmt qbox > zfs.out
+# python -m pyzfs.run --wfcfmt qbox > zfs.out
 
 D=`grep --color=never "D unit" zfs.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`
 Dref=`grep --color=never "D unit" zfs_ref.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`

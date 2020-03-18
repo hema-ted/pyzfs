@@ -12,6 +12,6 @@ setup(
         'numpy', 'scipy', 'mpi4py', 'h5py', 'ase', 'lxml',
     ],
     entry_points={
-        "console_scripts": ["pyzfs = pyzfs.exec.runzfs:main"]
+        "console_scripts": ["pyzfs = pyzfs.run:main"]
     }
 )

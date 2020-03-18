@@ -13,7 +13,7 @@ mpirun pw.x -i pw.in > pw.out
 # Run PyZFS to compute the ZFS tensor
 mpirun pyzfs --wfcfmt qeh5 > zfs.out
 # An equivalent command is:
-# mpirun python -m pyzfs.exec.runzfs --wfcfmt qeh5 > zfs.out
+# mpirun python -m pyzfs.run --wfcfmt qeh5 > zfs.out
 
 D=`grep --color=never "D unit" zfs.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`
 Dref=`grep --color=never "D unit" zfs_ref.xml | grep --color=never -Eoh '[+-]?[0-9]+([.][0-9]+)?'`
