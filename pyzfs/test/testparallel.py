@@ -55,7 +55,7 @@ class DistributedMatrixTest(TestCase):
             [mat.m, mat.n, mat.shape[2], mat.shape[3], mat.dtype],
             [self.m, self.n, self.p, self.q, self.dtype]
         )
-        if not mat.pgrid.is_active():
+        if not mat.is_active:
             self.assertSequenceEqual(
                 [mat.mloc, mat.mstart, mat.mend, mat.nloc, mat.nstart, mat.nend],
                 [0, 0, 0, 0, 0, 0]

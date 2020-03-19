@@ -9,6 +9,7 @@ install:
   - python -m pip install .
   - export PYTHONPATH=`pwd`
 script:
+  - python -m unittest
   - cd examples/o2_qe_hdf5/
   - bash run.sh
   - cd ../../
