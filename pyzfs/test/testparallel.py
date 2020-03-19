@@ -63,14 +63,6 @@ class DistributedMatrixTest(TestCase):
         else:
             pass
 
-    def test_collect(self):
-        """Test collection of local matrix to get global matrix"""
-        pass
-
-    def test_symmetrization(self):
-        """Test symmetrization of local matrix"""
-        pass
-
 
 if __name__ == "__main__":
     import sys
