@@ -93,10 +93,7 @@ class ZFSCalculation:
 
     @indent(2)
     def solve(self):
-        """Compute and gather local block of I in each processor.
-
-        TODO: all processor do summation of I first, then MPI allreduce to get D
-        """
+        """Compute and gather local block of I in each processor."""
         self.pgrid.comm.barrier()
         tssolve = time()
 
