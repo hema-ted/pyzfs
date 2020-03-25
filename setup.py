@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="pyzfs",
@@ -6,7 +6,7 @@ setup(
     author="He Ma, Marco Govoni, Giulia Galli",
     author_email="mahe@uchicago.edu, mgovoni@anl.gov, gagalli@uchicago.edu",
     description="A python code to compute zero-field splitting tensors",
-    packages=["pyzfs"],
+    packages=find_packages(),
     classifiers=[],
     install_requires=[
         'numpy', 'scipy', 'mpi4py', 'h5py', 'ase', 'lxml',
