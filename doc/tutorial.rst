@@ -62,9 +62,9 @@ After installation, **PyZFS** can be executed in two manners:
 
    - `filename`: name of the Qbox sample XML file that contains input wavefunction. Only used if `wfcfmt = "qbox"`.
 
-   - `fftgrid`: FFT grid used. Supported values are "density" or "wave". If "wave" is specified, use a reduced FFT grid to perform calculations. Default is "wave".
+   - `fftgrid`: FFT grid used. Supported values are "density" or "wave". "density": the density grid is used for FFT; "wave": a reduced grid is used for FFT. Default is "wave", which is computationally less expensive and is recommended for large-scale calculations.
 
-   - `memory`: "high", "low" or "critical". See ZFSCalculation documentation. Default is "critical".
+   - `memory`: Controls whether certain intermediate quantities are kept in memory or re-computed every time. Supported values are "high", "low" and "critical", which keeps the decreasing amount of quantities in memory. Default is "critical", which costs least memory and is recommended for large-scale calculations.
 
    An example execution command for Quantum Espresso HDF5 save file is
 
