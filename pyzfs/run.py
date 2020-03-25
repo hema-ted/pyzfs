@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function
-import numpy as np
+import sys
 import os
 from datetime import datetime
+import numpy as np
 from mpi4py import MPI
 from pprint import pprint
 import pkg_resources
@@ -11,11 +12,11 @@ from .zfs.main import ZFSCalculation
 from .common.parallel import mpiroot
 
 
-"""Run Zero Field Splitting calculation
+pyzfs_help_message = """Run Zero Field Splitting calculation
 
 Example:
-    mpirun python -m pyzfs.main --wfcfmt qeh5 --prefix pwscf
-    mpirun python -m pyzfs.main --wfcfmt qbox --filename gs.xml
+    mpirun pyzfs --wfcfmt qeh5 --prefix pwscf
+    mpirun pyzfs --wfcfmt qbox --filename gs.xml
 
 Acceptable kwargs are:
     --path: working directory for this calculation. Python will first change
@@ -25,17 +26,19 @@ Acceptable kwargs are:
         "qeh5": Quantum Espresso HDF5 save file. path should contains "prefix.xml" and save folder.
         "qe": Quantum Espresso (v6.1) save file. path should be the save folder that contains "data-files.xml", etc.
               The gvector and evc files have to be converted to xml through iotk.
-        "qbox": Qbox xml file
+        "qbox": Qbox xml file.
         "cube-wfc": cube files of (real) wavefunctions (Kohn-Sham orbitals).
         "cube-density": cube files of (signed) wavefunction squared, mainly used to
             support pp.x output with plot_num = 7 and lsign = .TRUE.
-        File name convention for cube file:
+        File name convention for cube files:
             1. Must end with ".cube".
             2. Must contains either "up" or "down" to indicate spin channel.
             3. The last integer value found the file name is interpreted as band index.
-        Default is "qeh5"
+        Default is "qeh5".
 
-    --filename: name for input wavefunction. Only used for Qbox wavefunction
+    --prefix: QE prefix. Only used for QE (HDF5) wavefunction.
+
+    --filename: name for input wavefunction. Only used for Qbox wavefunction.
 
     --fftgrid: "density" or "wave", currently only works for QE wavefunction. If "wave"
         is specified, orbitals will use a reduced grid for FFT. Default is "wave".
@@ -65,6 +68,10 @@ def main():
         "comm": MPI.COMM_WORLD,
         "memory": "low"
     }
+
+    if "--help" in sys.argv:
+        print(pyzfs_help_message)
+        exit()
 
     # Override default arguments with sys.argv
     kwargs.update(parse_sys_argv()[1])
