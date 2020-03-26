@@ -42,11 +42,11 @@ Therefore, the development of robust methods for the calculation of the ZFS tens
 
 In this work we describe the code `PyZFS` for the calculation of the ZFS tensor $\mathbf{D}$ of molecules and solids, based on wavefunctions obtained from density functional theory (DFT) calculations.
 For systems without heavy elements, i.e. where spin-orbit coupling is negligible, magnetic spin-spin interactions are the dominant ones in the determination of the ZFS tensor.
-For molecules and materials with magnetic permeability close to the vacuum permeability $\mu_0$, the spin-spin ZFS tensor evaluated using the DFT Kohn-Sham wavefunctions, is given by:
+For molecules and materials with magnetic permeability close to the vacuum permeability $\mu_0$, the spin-spin ZFS tensor evaluated using the DFT Kohn-Sham wavefunctions, is given by [@Harriman:1978]:
 $$ D_{ab} = \frac{1}{2S(2S-1)} \frac{\mu_0}{4\pi} (\gamma_\mathrm{e} \hbar)^2 \ \sum_{i < j}^{\mathrm{occ.}} \chi_{ij} \langle \Phi_{ij}| \ \frac{ r^2\delta_{ab} - 3r_a r_b }{ r^5 } \ |\Phi_{ij} \rangle $$
 where $a, b = x, y, z$ are Cartesian indices; $\gamma_e$ is the gyromagnetic ratio of electrons; the summation runs over all pairs of occupied Kohn-Sham orbitals; $\chi_{ij} = \pm 1$ for parallel and antiparallel spins, respectively; $\Phi_{ij}(\textbf{r},\textbf{r}')$ are $2 \times 2$ determinants formed from Kohn-Sham orbitals $\phi_{i}$ and $\phi_{j}$, $\Phi_{ij}(\textbf{r},\textbf{r}')=\frac{1}{\sqrt{2}}\Big[\phi_{i}(\textbf{r})\phi_{j}(\textbf{r}') - \phi_{i}(\textbf{r}')\phi_{j}(\textbf{r})]$.
 
-Several quantum chemistry codes (for example ORCA[@Neese:2012]) include the implementation of ZFS tensor calculations for molecules, where electronic wavefunctions are represented using Gaussian basis sets.
+Several quantum chemistry codes (for example ORCA [@Neese:2012]) include the implementation of ZFS tensor calculations for molecules, where electronic wavefunctions are represented using Gaussian basis sets.
 However, few open-source codes are available to compute ZFS tensors using plane-wave basis sets, which are usually the basis sets of choice to study condensed systems.
 In `PyZFS` we implement the evaluation of spin-spin ZFS tensors using plane-wave basis sets.
 The double integration in real space is reduced to a single summation over reciprocal lattice vectors through the use of Fast Fourier Transforms [@Rayson:2008].
