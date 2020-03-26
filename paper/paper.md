@@ -67,7 +67,8 @@ Thanks to the parallel design of the code, `PyZFS` can perform calculations for 
 For example, the calculations performed in [@Whiteley:2019] used supercells that contain more than 3000 valence electrons, and are among the largest first-principles calculations of ZFS tensors reported by the time this document was written.
 
 # Acknowledgements
-We thank Hosung Seo for helpful discussions.
+We thank Hosung Seo and Viktor Ivády for helpful discussions.
+We thank Malcolm Ramsay and Xiao Wang for reviewing this paper and providing helpful comments and suggestions.
 This work was supported by MICCoM, as part of the Computational Materials Sciences Program funded by the U.S. Department of Energy, Office of Science, Basic Energy Sciences, Materials Sciences and Engineering Division through Argonne National Laboratory, under contract number DE-AC02-06CH11357.
 
 # References
