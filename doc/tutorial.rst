@@ -87,3 +87,5 @@ See *pyzfs/examples* for examples of computing the ZFS tensor for the oxygen mol
 After **PyZFS** is executed, the D tensor, its eigenvalues and eigenvectors are printed by the end of the output.
 The widely-used scalar D and E parameters are also printed.
 A "zfs.xml" file is generated that includes these information, facilitating parsing the results through scripts.
+
+**PyZFS** can scale to hundreds of MPI processes, and has been applied to systems with up to 3000 valence electrons. For large calculations, typical walltime a calculation is on the order of 12-24 hours.
