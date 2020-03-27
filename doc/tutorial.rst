@@ -88,4 +88,4 @@ After **PyZFS** is executed, the D tensor, its eigenvalues and eigenvectors are 
 The widely-used scalar D and E parameters are also printed.
 A "zfs.xml" file is generated that includes these information, facilitating parsing the results through scripts.
 
-**PyZFS** can scale to hundreds of MPI processes, and has been applied to systems with up to 3000 valence electrons. For large calculations, typical walltime a calculation is on the order of 12-24 hours.
+**PyZFS** can scale to hundreds of MPI processes, and has been applied to systems with up to 3000 valence electrons. For large calculations, typical walltime for a calculation is on the order of 12-24 hours.
